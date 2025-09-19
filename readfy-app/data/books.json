@@ -1,0 +1,42 @@
+[
+  {
+    "id": "793645bc-7749-4d06-b9c4-3763f31445ac",
+    "titulo": "Title",
+    "autor": "author",
+    "genero": "genero",
+    "anoPublicacao": 1992,
+    "avaliacao": 0
+  },
+  {
+    "id": "17bc1c78-4a6d-411f-9e53-663f21192aa7",
+    "titulo": "Title",
+    "autor": "author",
+    "genero": "genero",
+    "anoPublicacao": 1992,
+    "avaliacao": 0
+  },
+  {
+    "id": "b6f04aa5-ce6a-4b5e-8752-ad396385b9df",
+    "titulo": "Title",
+    "autor": "author",
+    "genero": "genero",
+    "anoPublicacao": 1992,
+    "avaliacao": 0
+  },
+  {
+    "id": "528222d1-06ad-432e-a2ad-15a7e4b65f02",
+    "titulo": "Title",
+    "autor": "author",
+    "genero": "genero",
+    "anoPublicacao": 1992,
+    "avaliacao": 0
+  },
+  {
+    "id": "da5426d6-8984-4069-8ab1-01ddc2069fc1",
+    "titulo": "Title",
+    "autor": "author",
+    "genero": "genero",
+    "anoPublicacao": 1992,
+    "avaliacao": 0
+  }
+]
