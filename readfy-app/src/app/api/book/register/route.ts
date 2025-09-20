@@ -6,7 +6,7 @@ import path from "path";
 export async function POST(request: Request) {
   try {
     const body: Book = await request.json();
-    const newBook: Book = createBook(body.titulo, body.autor, body.genero, body.anoPublicacao, body.avaliacao);
+    const newBook: Book = createBook(body.titulo, body.autor, body.genero, body.anoPublicacao, body.paginas, body.status, body.avaliacao);
 
     const filePath = path.join(process.cwd(), "data", "books.json");
 

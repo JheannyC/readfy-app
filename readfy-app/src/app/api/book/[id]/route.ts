@@ -9,7 +9,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
     const data = await fs.readFile(filePath, "utf-8");
     const books: Book[] = JSON.parse(data);
 
-    const livro = books.find((b) => b.id === id); // se estiver usando UUID
+    const livro = books.find((b) => b.id === id);
     if (!livro) return Response.json({ error: "Livro não encontrado" }, { status: 404 });
 
     return Response.json(livro);
