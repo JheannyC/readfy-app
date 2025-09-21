@@ -8,10 +8,17 @@ export async function GET() {
     const data = await fs.readFile(filePath, "utf-8");
     const books: Book[] = JSON.parse(data);
 
-    return Response.json(books);
+    return Response.json({
+      message: "Todos os livros foram listados com sucesso!",
+      books,
+    });
   } catch (error: any) {
     return Response.json(
-      { error: "Erro ao ler os livros", details: error.message },
+      {
+        error: "Erro ao listar todos os livros.",
+        details:
+          "Revise o arquivo data/books.json. Talvez ele esteja corrompido ou vazio.",
+      },
       { status: 500 }
     );
   }

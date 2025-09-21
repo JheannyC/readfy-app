@@ -14,7 +14,14 @@ export async function DELETE(
 
     const livroIndex = books.findIndex((b) => b.id === id);
     if (livroIndex === -1)
-      return Response.json({ error: "Livro não encontrado" }, { status: 404 });
+      return Response.json(
+        {
+          error: "Livro não encontrado.",
+          details:
+            "Revise o ID do livro. Talvez ele não exista, esteja incorreto ou não foi passado corretamente na URL.",
+        },
+        { status: 404 }
+      );
 
     books.splice(livroIndex, 1);
 
@@ -25,7 +32,11 @@ export async function DELETE(
     });
   } catch (error: any) {
     return Response.json(
-      { error: "Erro ao excluir livro", details: error.message },
+      {
+        error: "Erro ao excluir livro",
+        details:
+          "Revise o ID do livro. Talvez ele não exista, esteja incorreto ou não foi passado corretamente na URL.",
+      },
       { status: 500 }
     );
   }

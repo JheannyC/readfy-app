@@ -8,22 +8,30 @@ export async function GET() {
     const data = await fs.readFile(filePath, "utf-8");
     const books: Book[] = JSON.parse(data);
 
-    const lendo = books.filter((b: any) => b.status === "aberto").length;
+    const aberto = books.filter((b: any) => b.status === "aberto").length;
+    const fechado = books.filter((b: any) => b.status === "fechado").length;
     const finalizados = books.filter(
-      (b: any) => b.status === "finalizado").length;
+      (b: any) => b.status === "finalizado"
+    ).length;
     const paginasLidas = books
       .filter((b: any) => b.status === "finalizado")
       .reduce((acc: number, b: any) => acc + (b.paginas || 0), 0);
 
     return Response.json({
-      livrosLendo: lendo,
+      totalLivrosRegistrados: books.length,
+      livrosNaoIniciados: fechado,
+      livrosAbertos: aberto,
       livrosFinalizados: finalizados,
       totalPaginasLidas: paginasLidas,
-      total: books.length,
+
     });
   } catch (error: any) {
     return Response.json(
-      { error: "Erro ao gerar estatísticas", details: error.message },
+      {
+        error: "Erro ao gerar estatísticas",
+        details:
+          "Revise o arquivo data/books.json. Talvez ele esteja corrompido ou vazio.",
+      },
       { status: 500 }
     );
   }

@@ -16,7 +16,7 @@ export async function PUT(
 
     const index = books.findIndex((b) => b.id === id);
     if (index === -1) {
-      return Response.json({ error: "Livro não encontrado" }, { status: 404 });
+      return Response.json({ error: "Livro não encontrado." }, { status: 404 });
     }
 
     const { id: _, ...updateFields } = body;
@@ -24,9 +24,76 @@ export async function PUT(
 
     await fs.writeFile(filePath, JSON.stringify(books, null, 2));
 
+    if ("titulo" in updateFields) {
+      if (
+        updateFields.titulo === "" ||
+        typeof updateFields.titulo !== "string"
+      ) {
+        return Response.json(
+          {
+            error: "Não foi possível atualizar o título.",
+            details: "O título contém um valor inválido ou vazio.",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    if ("autor" in updateFields) {
+      if (updateFields.autor === "" || typeof updateFields.autor !== "string") {
+        return Response.json(
+          {
+            error: "Não foi possível atualizar o autor.",
+            details: "O autor contém um valor inválido ou vazio.",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    if ("status" in updateFields) {
+      if (
+        !["fechado", "aberto", "finalizado"].includes(updateFields.status) ||
+        typeof updateFields.status !== "string"
+      ) {
+        return Response.json(
+          {
+            error: "Não foi possível atualizar o status.",
+            details: "O status deve ser 'fechado', 'aberto' ou 'finalizado'.",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    if ("avaliacao" in updateFields) {
+      if (
+        typeof updateFields.avaliacao !== "number" ||
+        updateFields.avaliacao < 0 ||
+        updateFields.avaliacao > 5
+      ) {
+        return Response.json(
+          {
+            error: "Não foi possível atualizar a avaliação.",
+            details: "A avaliação deve ser um número entre 0 e 5.",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     return Response.json({
       message: "Livro atualizado com sucesso!",
       book: books[index],
     });
-  } catch (error: any) {}
+  } catch (error: any) {
+    return Response.json(
+      {
+        error: "Erro ao atualizar livro.",
+        details:
+          "Revise os dados enviados no body da request. Algum campo pode não ter sido preenchido corretamente ou a formatação está incorreta.",
+      },
+      { status: 500 }
+    );
+  }
 }
