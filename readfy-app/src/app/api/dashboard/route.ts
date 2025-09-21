@@ -9,7 +9,8 @@ export async function GET() {
     const books: Book[] = JSON.parse(data);
 
     const lendo = books.filter((b: any) => b.status === "aberto").length;
-    const finalizados = books.filter((b: any) => b.status === "finalizado").length;
+    const finalizados = books.filter(
+      (b: any) => b.status === "finalizado").length;
     const paginasLidas = books
       .filter((b: any) => b.status === "finalizado")
       .reduce((acc: number, b: any) => acc + (b.paginas || 0), 0);
@@ -18,7 +19,7 @@ export async function GET() {
       livrosLendo: lendo,
       livrosFinalizados: finalizados,
       totalPaginasLidas: paginasLidas,
-      total: books.length
+      total: books.length,
     });
   } catch (error: any) {
     return Response.json(
