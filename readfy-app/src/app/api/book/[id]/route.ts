@@ -14,12 +14,26 @@ export async function GET(
 
     const livro = books.find((b) => b.id === id);
     if (!livro)
-      return Response.json({ error: "Livro não encontrado" }, { status: 404 });
+      return Response.json(
+        {
+          error: "Livro não encontrado.",
+          details:
+            "Revise o ID do livro. Talvez ele não exista, esteja incorreto ou não foi passado corretamente na URL.",
+        },
+        { status: 404 }
+      );
 
-    return Response.json(livro);
+    return Response.json({
+      message: "Livro encontrado com sucesso!",
+      livro,
+    });
   } catch (error: any) {
     return Response.json(
-      { error: "Erro ao ler o livro", details: error.message },
+      {
+        error: "Erro ao retornar os dados do livro.",
+        details:
+          "Revise o ID do livro. Talvez ele não exista, esteja incorreto ou não foi passado corretamente na URL.",
+      },
       { status: 500 }
     );
   }
