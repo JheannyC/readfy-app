@@ -2,7 +2,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { Book } from "@/app/types/book";
 
-export async function GET(
+export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
@@ -12,14 +12,20 @@ export async function GET(
     const data = await fs.readFile(filePath, "utf-8");
     const books: Book[] = JSON.parse(data);
 
-    const livro = books.find((b) => b.id === id);
-    if (!livro)
+    const livroIndex = books.findIndex((b) => b.id === id);
+    if (livroIndex === -1)
       return Response.json({ error: "Livro não encontrado" }, { status: 404 });
 
-    return Response.json(livro);
+    books.splice(livroIndex, 1);
+
+    await fs.writeFile(filePath, JSON.stringify(books, null, 2));
+
+    return Response.json({
+      message: "Livro excluído com sucesso!",
+    });
   } catch (error: any) {
     return Response.json(
-      { error: "Erro ao ler o livro", details: error.message },
+      { error: "Erro ao excluir livro", details: error.message },
       { status: 500 }
     );
   }

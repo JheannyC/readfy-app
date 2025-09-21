@@ -10,6 +10,9 @@ export async function GET() {
 
     return Response.json(books);
   } catch (error: any) {
-    return Response.json({ error: "Erro ao ler os livros", details: error.message }, { status: 500 });
+    return Response.json(
+      { error: "Erro ao ler os livros", details: error.message },
+      { status: 500 }
+    );
   }
 }

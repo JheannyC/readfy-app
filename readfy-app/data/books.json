@@ -1,42 +1,52 @@
 [
   {
-    "id": "793645bc-7749-4d06-b9c4-3763f31445ac",
-    "titulo": "Title",
-    "autor": "author",
-    "genero": "genero",
-    "anoPublicacao": 1992,
+    "id": "4d8f6e30-5c7a-40fd-a2a6-aa7932cf2b36",
+    "titulo": "O Pequeno Príncipe",
+    "autor": "Antoine de Saint-Exupéry",
+    "genero": "Fábula",
+    "anoPublicacao": 1943,
+    "paginas": 365,
+    "status": "aberto",
+    "avaliacao": 5
+  },
+  {
+    "id": "54d5b923-711d-4acd-a07d-943c58b2d51d",
+    "titulo": "O Pequeno Príncipe",
+    "autor": "Antoine de Saint-Exupéry",
+    "genero": "Fábula",
+    "anoPublicacao": 1943,
+    "paginas": 365,
+    "status": "finalizado",
+    "avaliacao": 5
+  },
+  {
+    "id": "1789acbe-0b79-47db-a79d-9aa1e115c37a",
+    "titulo": "O Pequeno Príncipe",
+    "autor": "Antoine de Saint-Exupéry",
+    "genero": "Fábula",
+    "anoPublicacao": 1943,
+    "paginas": 365,
+    "status": "fechado",
     "avaliacao": 0
   },
   {
-    "id": "17bc1c78-4a6d-411f-9e53-663f21192aa7",
-    "titulo": "Title",
-    "autor": "author",
-    "genero": "genero",
-    "anoPublicacao": 1992,
+    "id": "8f52c0d5-187e-4649-8304-95891f231b6f",
+    "titulo": "O Pequeno Príncipe",
+    "autor": "Antoine de Saint-Exupéry",
+    "genero": "Fábula",
+    "anoPublicacao": 1943,
+    "paginas": 365,
+    "status": "fechado",
     "avaliacao": 0
   },
   {
-    "id": "b6f04aa5-ce6a-4b5e-8752-ad396385b9df",
-    "titulo": "Title",
-    "autor": "author",
-    "genero": "genero",
-    "anoPublicacao": 1992,
-    "avaliacao": 0
-  },
-  {
-    "id": "528222d1-06ad-432e-a2ad-15a7e4b65f02",
-    "titulo": "Title",
-    "autor": "author",
-    "genero": "genero",
-    "anoPublicacao": 1992,
-    "avaliacao": 0
-  },
-  {
-    "id": "da5426d6-8984-4069-8ab1-01ddc2069fc1",
-    "titulo": "Title",
-    "autor": "author",
-    "genero": "genero",
-    "anoPublicacao": 1992,
+    "id": "e14afb52-14d8-41ca-9bfa-956c105d3c9f",
+    "titulo": "O Pequeno Príncipe",
+    "autor": "Antoine de Saint-Exupéry",
+    "genero": "Fábula",
+    "anoPublicacao": 1943,
+    "paginas": 365,
+    "status": "finalizado",
     "avaliacao": 0
   }
 ]
