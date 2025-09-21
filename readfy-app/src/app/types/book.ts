@@ -7,15 +7,27 @@ export interface Book {
   genero: string;
   anoPublicacao: number;
   avaliacao: number;
+  paginas: number;
+  status: "fechado" | "aberto" | "finalizado";
 }
 
-export function createBook(titulo: string, autor: string, genero: string, anoPublicacao: number, avaliacao: number): Book {
+export function createBook(
+  titulo: string,
+  autor: string,
+  genero: string,
+  anoPublicacao: number,
+  paginas: number,
+  status: "fechado" | "aberto" | "finalizado",
+  avaliacao: number
+): Book {
   return {
     id: uuidv4(),
     titulo,
     autor,
     genero,
     anoPublicacao,
-    avaliacao,
+    paginas,
+    status: "fechado",
+    avaliacao: 0,
   };
 }
