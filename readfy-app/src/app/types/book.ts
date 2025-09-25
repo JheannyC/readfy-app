@@ -1,5 +1,3 @@
-import { v4 as uuidv4 } from "uuid";
-
 export interface Book {
   id: string;
   titulo: string;
@@ -12,6 +10,7 @@ export interface Book {
 }
 
 export function createBook(
+  id: string,
   titulo: string,
   autor: string,
   genero: string,
@@ -21,13 +20,13 @@ export function createBook(
   avaliacao: number
 ): Book {
   return {
-    id: uuidv4(),
+    id,
     titulo,
     autor,
     genero,
     anoPublicacao,
     paginas,
-    status: "fechado",
-    avaliacao: 0,
+    status,
+    avaliacao,
   };
 }
