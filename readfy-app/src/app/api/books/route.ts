@@ -1,16 +1,25 @@
-import { promises as fs } from "fs";
-import path from "path";
-import { Book } from "@/app/types/book";
+import { NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
 
 export async function GET() {
   try {
-    const filePath = path.join(process.cwd(), "data", "books.json");
-    const data = await fs.readFile(filePath, "utf-8");
-    const books: Book[] = JSON.parse(data);
+    const livro = await prisma.book.findMany({
+      include: { genero: true, status: true },
+    });
 
     return Response.json({
       message: "Todos os livros foram listados com sucesso!",
-      books,
+      Book: livro.map((livro) => ({
+          id: livro.id,
+          titulo: livro.titulo,
+          autor: livro.autor,
+          genero: livro.genero?.categoryName,
+          anoPublicacao: livro.anoPublicacao,
+          paginas: livro.paginas,
+          status: livro?.status?.statusName,
+          avaliacao: livro.avaliacao
+        })),
     });
   } catch (error: any) {
     return Response.json(

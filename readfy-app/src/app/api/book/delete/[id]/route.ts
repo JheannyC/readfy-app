@@ -1,19 +1,22 @@
-import { promises as fs } from "fs";
-import path from "path";
-import { Book } from "@/app/types/book";
+import { NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
 
 export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
-    const filePath = path.join(process.cwd(), "data", "books.json");
-    const data = await fs.readFile(filePath, "utf-8");
-    const books: Book[] = JSON.parse(data);
+    const id = Number(params.id);
+    if (isNaN(id)) {
+      return NextResponse.json({ error: "ID inválido." }, { status: 400 });
+    }
 
-    const livroIndex = books.findIndex((b) => b.id === id);
-    if (livroIndex === -1)
+    const livro = await prisma.book.findUnique({
+      where: { id },
+      include: { genero: true, status: true },
+    });
+    if (!livro)
       return Response.json(
         {
           error: "Livro não encontrado.",
@@ -23,9 +26,10 @@ export async function DELETE(
         { status: 404 }
       );
 
-    books.splice(livroIndex, 1);
+    await prisma.book.delete({
+      where: { id },
+    });
 
-    await fs.writeFile(filePath, JSON.stringify(books, null, 2));
 
     return Response.json({
       message: "Livro excluído com sucesso!",

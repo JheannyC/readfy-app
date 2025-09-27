@@ -1,18 +1,22 @@
-import { promises as fs } from "fs";
-import path from "path";
-import { Book } from "@/app/types/book";
+import { NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
 
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
-    const filePath = path.join(process.cwd(), "data", "books.json");
-    const data = await fs.readFile(filePath, "utf-8");
-    const books: Book[] = JSON.parse(data);
+    const id = Number(params.id);
+    if (isNaN(id)) {
+      return NextResponse.json({ error: "ID inválido." }, { status: 400 });
+    }
 
-    const livro = books.find((b) => b.id === id);
+    const livro = await prisma.book.findUnique({
+      where: { id },
+      include: { genero: true, status: true },
+    });
+
     if (!livro)
       return Response.json(
         {
@@ -25,8 +29,19 @@ export async function GET(
 
     return Response.json({
       message: "Livro encontrado com sucesso!",
-      livro,
-    });
+  livro: {
+          id: livro.id,
+          titulo: livro.titulo,
+          autor: livro.autor,
+          genero: livro.genero?.categoryName,
+          anoPublicacao: livro.anoPublicacao,
+          paginas: livro.paginas,
+          status: livro?.status?.statusName,
+          avaliacao: livro.avaliacao
+        },
+      },
+      { status: 200 }
+    );
   } catch (error: any) {
     return Response.json(
       {

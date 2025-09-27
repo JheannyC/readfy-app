@@ -1,11 +1,17 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '../generated/prisma'
 
-const globalForPrisma = global as unknown as { prisma: PrismaClient };
+const prisma = new PrismaClient()
 
-export const prisma =
-  globalForPrisma.prisma ||
-  new PrismaClient({
-    log: ["query", "error", "warn"],
-  });
+async function main() {
+  // ... you will write your Prisma Client queries here
+}
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+main()
+  .then(async () => {
+    await prisma.$disconnect()
+  })
+  .catch(async (e) => {
+    console.error(e)
+    await prisma.$disconnect()
+    process.exit(1)
+  })
