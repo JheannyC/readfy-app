@@ -22,20 +22,21 @@ model Book {
   statusId      Int
   status        Status   @relation(fields: [statusId], references: [id])
   avaliacao     Int?
+  imgURL        String?
 
   generoId      Int
-  genero        Gender   @relation(fields: [generoId], references: [id])
+  genero        Genre   @relation(fields: [generoId], references: [id])
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @default(now())
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 }
 
-model Gender {
+model Genre {
   id           Int      @id @default(autoincrement())
   categoryName String   @unique
   books        Book[]
   createdAt    DateTime @default(now())
-  updatedAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model Status {
@@ -43,5 +44,5 @@ model Status {
   statusName       String   @unique
   books        Book[]
   createdAt    DateTime @default(now())
-  updatedAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }

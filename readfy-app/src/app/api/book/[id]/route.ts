@@ -27,9 +27,10 @@ export async function GET(
         { status: 404 }
       );
 
-    return Response.json({
-      message: "Livro encontrado com sucesso!",
-  livro: {
+    return Response.json(
+      {
+        message: "Livro encontrado com sucesso!",
+        livro: {
           id: livro.id,
           titulo: livro.titulo,
           autor: livro.autor,
@@ -37,7 +38,7 @@ export async function GET(
           anoPublicacao: livro.anoPublicacao,
           paginas: livro.paginas,
           status: livro?.status?.statusName,
-          avaliacao: livro.avaliacao
+          avaliacao: livro.avaliacao,
         },
       },
       { status: 200 }

@@ -1,36 +1,41 @@
-import { promises as fs } from "fs";
-import path from "path";
-import { Book } from "@/app/types/book";
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
 
 export async function GET() {
   try {
-    const filePath = path.join(process.cwd(), "data", "books.json");
-    const data = await fs.readFile(filePath, "utf-8");
-    const books: Book[] = JSON.parse(data);
+    const books = await prisma.book.findMany({
+      include: { genero: true, status: true },
+    });
 
-    const aberto = books.filter((b: any) => b.status === "aberto").length;
-    const fechado = books.filter((b: any) => b.status === "fechado").length;
-    const finalizados = books.filter(
-      (b: any) => b.status === "finalizado"
+    const aberto = books.filter(
+      (b: any) => b.status.statusName === "aberto"
     ).length;
-    const paginasLidas = books
-      .filter((b: any) => b.status === "finalizado")
-      .reduce((acc: number, b: any) => acc + (b.paginas || 0), 0);
+    const fechado = books.filter(
+      (b: any) => b.status.statusName === "fechado"
+    ).length;
+    const finalizados = books.filter(
+      (b: any) => b.status.statusName === "finalizado"
+    ).length;
+
+    const paginasLidas = await prisma.book.aggregate({
+      _sum: { paginas: true },
+      where: { status: { statusName: "finalizado" } },
+    });
+    const totalPaginasLidas = paginasLidas._sum.paginas || 0;
 
     return Response.json({
       totalLivrosRegistrados: books.length,
       livrosNaoIniciados: fechado,
       livrosAbertos: aberto,
       livrosFinalizados: finalizados,
-      totalPaginasLidas: paginasLidas,
-
+      totalPaginasLidas: totalPaginasLidas,
     });
   } catch (error: any) {
     return Response.json(
       {
         error: "Erro ao gerar estatísticas",
         details:
-          "Revise o arquivo data/books.json. Talvez ele esteja corrompido ou vazio.",
+          "Revise os dados cadastrados. Talvez estejam corrompidos ou vazios.",
       },
       { status: 500 }
     );

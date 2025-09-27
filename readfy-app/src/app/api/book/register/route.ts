@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { titulo, autor, genero, anoPublicacao, paginas} = body;
+    const { titulo, autor, genero, anoPublicacao, paginas, imgURL } = body;
 
     if (!titulo || typeof titulo !== "string") {
       return Response.json(
@@ -25,9 +25,17 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    if (!genero || typeof genero !== "string") {
+     if (!genero || genero !== undefined) {
+      if (typeof genero !== "string" || !genero.trim()) {
+        return Response.json(
+          { error: "Gênero do livro é obrigatório." },
+          { status: 400 }
+        );
+      }
+    }
+    if (imgURL && typeof imgURL !== "string") {
       return Response.json(
-        { error: "Gênero do livro é obrigatório." },
+        { error: "URL da imagem inválida." },
         { status: 400 }
       );
     }
@@ -48,13 +56,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let generoExistente = await prisma.gender.findUnique({
-      where: { categoryName: genero },
+    let generoNormalized = genero.toLowerCase().trim();
+
+    let generoExistente = await prisma.genre.findUnique({
+      where: { categoryName: generoNormalized},
     });
 
     if (!generoExistente) {
-      generoExistente = await prisma.gender.create({
-        data: { categoryName: genero.toLowerCase() },
+      generoExistente = await prisma.genre.create({
+        data: { categoryName: generoNormalized },
       });
     }
 
@@ -81,6 +91,7 @@ export async function POST(request: NextRequest) {
           connect: { id: generoExistente.id },
         },
         avaliacao: 0,
+        imgURL: "",
         createdAt: new Date(),
       },
       include: {
@@ -99,8 +110,9 @@ export async function POST(request: NextRequest) {
           genero: livro.genero?.categoryName,
           anoPublicacao: livro.anoPublicacao,
           paginas: livro.paginas,
-          status: livro?.status?.statusName,
+          status: livro?.status?.statusName.toLowerCase(),
           avaliacao: livro.avaliacao,
+          imgURL: livro.imgURL,
         },
       },
       { status: 201 }

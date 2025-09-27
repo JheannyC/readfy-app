@@ -30,7 +30,6 @@ export async function DELETE(
       where: { id },
     });
 
-
     return Response.json({
       message: "Livro excluído com sucesso!",
     });
