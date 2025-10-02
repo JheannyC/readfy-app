@@ -24,7 +24,6 @@ export default function Dashboard() {
     loadBooks();
   }, []);
 
-  // Filtrar livros quando searchTerm mudar
   useEffect(() => {
     if (searchTerm.trim() === '') {
       setFilteredBooks(books);
@@ -54,14 +53,12 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error('Erro:', error);
-      // Se houver erro, usar dados de exemplo
       addSampleBooks();
     } finally {
       setLoading(false);
     }
   };
 
-  // Dados de exemplo com títulos diferentes
   const addSampleBooks = () => {
     const sampleBooks: Book[] = [
       {

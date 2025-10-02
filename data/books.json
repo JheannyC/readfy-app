@@ -48,5 +48,45 @@
     "paginas": 365,
     "status": "finalizado",
     "avaliacao": 0
+  },
+  {
+    "id": "25d27cc7-ff0c-4dff-97c4-068725f8b680",
+    "titulo": "Harry Potter",
+    "autor": "J.K.Rolling",
+    "genero": "Fantasia",
+    "anoPublicacao": 2018,
+    "paginas": 250,
+    "status": "fechado",
+    "avaliacao": 0
+  },
+  {
+    "id": "029bd0f4-7748-4ea3-bd7c-3d169267b5b1",
+    "titulo": "Dom Casmurro",
+    "autor": "MAchado de Asssis",
+    "genero": "Romance",
+    "anoPublicacao": 1999,
+    "paginas": 256,
+    "status": "fechado",
+    "avaliacao": 0
+  },
+  {
+    "id": "c61e0cf5-17f4-4a34-8009-1299e1e49f3c",
+    "titulo": "1989",
+    "autor": "George gadwell",
+    "genero": "institucional",
+    "anoPublicacao": 2002,
+    "paginas": 370,
+    "status": "fechado",
+    "avaliacao": 0
+  },
+  {
+    "id": "5ddb0721-89dd-4be9-a547-bbfeb24a650d",
+    "titulo": "Dom casmuro",
+    "autor": "Machado de Assis",
+    "genero": "Romance",
+    "anoPublicacao": 1999,
+    "paginas": 256,
+    "status": "fechado",
+    "avaliacao": 0
   }
 ]

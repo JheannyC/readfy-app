@@ -1,0 +1,14 @@
+[
+  {
+    "id": "123456789",
+    "titulo": "Dom Casmurro",
+    "autor": "Machado de Assis", 
+    "genero": "Romance",
+    "anoPublicacao": 1899,
+    "paginas": 256,
+    "status": "Lido",
+    "avaliacao": 5,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  }
+]
