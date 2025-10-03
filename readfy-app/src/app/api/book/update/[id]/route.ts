@@ -77,14 +77,14 @@ export async function PUT(
         );
       }
 
-      const statusNormalized = status.toLowerCase().trim();
-      const allowed = ["aberto", "fechado", "finalizado"];
+      const statusNormalized = status.toUpperCase().trim();
+      const allowed = ["ABERTO", "FECHADO", "FINALIZADO"];
 
       if (!allowed.includes(statusNormalized)) {
         return NextResponse.json(
           {
             error:
-              "Status inválido. Deve ser 'aberto', 'fechado' ou 'finalizado'.",
+              "Status inválido. Deve ser 'ABERTO', 'FECHADO' ou 'FINALIZADO'.",
           },
           { status: 400 }
         );
