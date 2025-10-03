@@ -1,14 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+
 const prisma = new PrismaClient();
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
     const id = Number(params.id);
-    if (isNaN(id)) {
+
+    if (!Number.isInteger(id) || id <= 0) {
       return NextResponse.json({ error: "ID inválido." }, { status: 400 });
     }
 
@@ -17,40 +19,43 @@ export async function GET(
       include: { genero: true, status: true },
     });
 
-    if (!livro)
-      return Response.json(
+    if (!livro) {
+      return NextResponse.json(
         {
           error: "Livro não encontrado.",
           details:
-            "Revise o ID do livro. Talvez ele não exista, esteja incorreto ou não foi passado corretamente na URL.",
+            "Verifique o ID do livro. Ele pode não existir ou ter sido passado incorretamente na URL.",
         },
         { status: 404 }
       );
+    }
 
-    return Response.json(
+    return NextResponse.json(
       {
         message: "Livro encontrado com sucesso!",
         livro: {
           id: livro.id,
           titulo: livro.titulo,
           autor: livro.autor,
-          genero: livro.genero?.categoryName,
+          genero: livro.genero.categoryName,
           anoPublicacao: livro.anoPublicacao,
           paginas: livro.paginas,
-          status: livro?.status?.statusName,
+          status: livro.status.statusName,
           avaliacao: livro.avaliacao,
         },
       },
       { status: 200 }
     );
-  } catch (error: any) {
-    return Response.json(
+  } catch (error) {
+    console.error("Erro ao buscar livro:", error);
+    return NextResponse.json(
       {
         error: "Erro ao retornar os dados do livro.",
-        details:
-          "Revise o ID do livro. Talvez ele não exista, esteja incorreto ou não foi passado corretamente na URL.",
+        details: "Ocorreu um erro interno no servidor.",
       },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }

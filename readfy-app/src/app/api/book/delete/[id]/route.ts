@@ -1,46 +1,50 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+
 const prisma = new PrismaClient();
 
 export async function DELETE(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
     const id = Number(params.id);
-    if (isNaN(id)) {
+
+    if (!Number.isInteger(id) || id <= 0) {
       return NextResponse.json({ error: "ID inválido." }, { status: 400 });
     }
 
     const livro = await prisma.book.findUnique({
       where: { id },
-      include: { genero: true, status: true },
+      select: { id: true },
     });
-    if (!livro)
-      return Response.json(
+
+    if (!livro) {
+      return NextResponse.json(
         {
           error: "Livro não encontrado.",
           details:
-            "Revise o ID do livro. Talvez ele não exista, esteja incorreto ou não foi passado corretamente na URL.",
+            "Verifique o ID do livro. Ele pode não existir ou ter sido passado incorretamente na URL.",
         },
         { status: 404 }
       );
+    }
 
-    await prisma.book.delete({
-      where: { id },
-    });
+    await prisma.book.delete({ where: { id } });
 
-    return Response.json({
+    return NextResponse.json({
       message: "Livro excluído com sucesso!",
     });
-  } catch (error: any) {
-    return Response.json(
+  } catch (error) {
+    console.error("Erro ao excluir livro:", error);
+    return NextResponse.json(
       {
-        error: "Erro ao excluir livro",
-        details:
-          "Revise o ID do livro. Talvez ele não exista, esteja incorreto ou não foi passado corretamente na URL.",
+        error: "Erro ao excluir livro.",
+        details: "Ocorreu um erro interno no servidor.",
       },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }
