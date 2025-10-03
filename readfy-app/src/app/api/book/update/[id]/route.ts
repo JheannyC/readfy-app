@@ -1,15 +1,65 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+function validateString(value: any, fieldName: string) {
+  if (value !== undefined && (typeof value !== "string" || !value.trim())) {
+    return `${fieldName} inválido.`;
+  }
+  return null;
+}
+
+function validateNumber(value: any, fieldName: string, min = 1, max?: number) {
+  if (
+    value !== undefined &&
+    (typeof value !== "number" ||
+      value < min ||
+      (max !== undefined && value > max))
+  ) {
+    return `${fieldName} inválido.`;
+  }
+  return null;
+}
+
+async function getOrCreateStatus(status: string) {
+  const normalized = status.toUpperCase().trim();
+  const allowed = ["ABERTO", "FECHADO", "FINALIZADO"];
+  if (!allowed.includes(normalized)) throw new Error("Status inválido");
+
+  let statusExistente = await prisma.status.findUnique({
+    where: { statusName: normalized },
+  });
+
+  if (!statusExistente) {
+    statusExistente = await prisma.status.create({
+      data: { statusName: normalized },
+    });
+  }
+  return statusExistente;
+}
+
+async function getOrCreateGenero(genero: string) {
+  const normalized = genero.toLowerCase().trim();
+  let generoExistente = await prisma.genre.findUnique({
+    where: { categoryName: normalized },
+  });
+
+  if (!generoExistente) {
+    generoExistente = await prisma.genre.create({
+      data: { categoryName: normalized },
+    });
+  }
+  return generoExistente;
+}
+
 export async function PUT(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
     const id = Number(params.id);
-    if (isNaN(id)) {
+    if (!Number.isInteger(id) || id <= 0) {
       return NextResponse.json({ error: "ID inválido." }, { status: 400 });
     }
 
@@ -25,42 +75,22 @@ export async function PUT(
       imgURL,
     } = body as Record<string, any>;
 
-    if (
-      titulo !== undefined &&
-      (typeof titulo !== "string" || !titulo.trim())
-    ) {
-      return NextResponse.json({ error: "Título inválido." }, { status: 400 });
+    const errors = [
+      validateString(titulo, "Título"),
+      validateString(autor, "Autor"),
+      validateString(genero, "Gênero"),
+      validateNumber(anoPublicacao, "Ano de publicação"),
+      validateNumber(paginas, "Número de páginas"),
+      validateNumber(avaliacao, "Avaliação", 0, 5),
+      imgURL !== undefined && typeof imgURL !== "string"
+        ? "URL da imagem inválida."
+        : null,
+    ].filter(Boolean);
+
+    if (errors.length > 0) {
+      return NextResponse.json({ error: errors.join(" ") }, { status: 400 });
     }
-    if (autor !== undefined && (typeof autor !== "string" || !autor.trim())) {
-      return NextResponse.json({ error: "Autor inválido." }, { status: 400 });
-    }
-    if (
-      anoPublicacao !== undefined &&
-      (typeof anoPublicacao !== "number" || anoPublicacao <= 0)
-    ) {
-      return NextResponse.json(
-        { error: "Ano de publicação inválido." },
-        { status: 400 }
-      );
-    }
-    if (
-      paginas !== undefined &&
-      (typeof paginas !== "number" || paginas <= 0)
-    ) {
-      return NextResponse.json(
-        { error: "Número de páginas inválido." },
-        { status: 400 }
-      );
-    }
-    if (
-      avaliacao !== undefined &&
-      (typeof avaliacao !== "number" || avaliacao < 0 || avaliacao > 5)
-    ) {
-      return NextResponse.json(
-        { error: "Avaliação deve ser número entre 0 e 5." },
-        { status: 400 }
-      );
-    }
+
     const livroExistente = await prisma.book.findUnique({ where: { id } });
     if (!livroExistente) {
       return NextResponse.json(
@@ -68,79 +98,27 @@ export async function PUT(
         { status: 404 }
       );
     }
+
     let statusExistente = null;
-    if (status !== undefined) {
-      if (typeof status !== "string") {
-        return NextResponse.json(
-          { error: "Status inválido." },
-          { status: 400 }
-        );
-      }
-
-      const statusNormalized = status.toUpperCase().trim();
-      const allowed = ["ABERTO", "FECHADO", "FINALIZADO"];
-
-      if (!allowed.includes(statusNormalized)) {
-        return NextResponse.json(
-          {
-            error:
-              "Status inválido. Deve ser 'ABERTO', 'FECHADO' ou 'FINALIZADO'.",
-          },
-          { status: 400 }
-        );
-      }
-
-      statusExistente = await prisma.status.findUnique({
-        where: { statusName: statusNormalized },
-      });
-
-      if (!statusExistente) {
-        statusExistente = await prisma.status.create({
-          data: { statusName: statusNormalized },
-        });
-      }
-    }
+    if (status !== undefined) statusExistente = await getOrCreateStatus(status);
 
     let generoExistente = null;
-    if (genero !== undefined) {
-      if (typeof genero !== "string" || !genero.trim()) {
-        return NextResponse.json(
-          { error: "Gênero inválido." },
-          { status: 400 }
-        );
-      }
+    if (genero !== undefined) generoExistente = await getOrCreateGenero(genero);
 
-      const generoNormalized = genero.toLowerCase().trim();
-      generoExistente = await prisma.genre.findUnique({
-        where: { categoryName: generoNormalized },
-      });
-
-      if (!generoExistente) {
-        generoExistente = await prisma.genre.create({
-          data: { categoryName: generoNormalized },
-        });
-      }
-    }
-    if (imgURL !== undefined) {
-      if (typeof imgURL !== "string") {
-        return NextResponse.json(
-          { error: "URL da imagem inválida." },
-          { status: 400 }
-        );
-      }
-    }
-
-    const updateData: any = {};
-    if (titulo !== undefined) updateData.titulo = titulo.trim();
-    if (autor !== undefined) updateData.autor = autor.trim();
-    if (anoPublicacao !== undefined) updateData.anoPublicacao = anoPublicacao;
-    if (paginas !== undefined) updateData.paginas = paginas;
-    if (avaliacao !== undefined) updateData.avaliacao = avaliacao;
-    if (imgURL !== undefined) updateData.imgURL = imgURL;
-    if (statusExistente)
-      updateData.status = { connect: { id: statusExistente.id } };
-    if (generoExistente)
-      updateData.genero = { connect: { id: generoExistente.id } };
+    const updateData: any = {
+      ...(titulo !== undefined && { titulo: titulo.trim() }),
+      ...(autor !== undefined && { autor: autor.trim() }),
+      ...(anoPublicacao !== undefined && { anoPublicacao }),
+      ...(paginas !== undefined && { paginas }),
+      ...(avaliacao !== undefined && { avaliacao }),
+      ...(imgURL !== undefined && { imgURL }),
+      ...(statusExistente && {
+        status: { connect: { id: statusExistente.id } },
+      }),
+      ...(generoExistente && {
+        genero: { connect: { id: generoExistente.id } },
+      }),
+    };
 
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json(
@@ -173,12 +151,12 @@ export async function PUT(
       { status: 200 }
     );
   } catch (error: any) {
-    console.error(error);
+    console.error("Erro ao atualizar livro:", error);
     return NextResponse.json(
       {
         error: "Erro ao atualizar livro.",
         details:
-          "Revise os dados enviados no body da request. Algum campo pode não ter sido preenchido corretamente ou a formatação está incorreta.",
+          "Revise os dados enviados no body da request. Algum campo pode estar incorreto.",
       },
       { status: 500 }
     );

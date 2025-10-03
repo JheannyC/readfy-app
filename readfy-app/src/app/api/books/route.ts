@@ -1,43 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+
 const prisma = new PrismaClient();
 
 export async function GET(req: NextRequest) {
   try {
-    const livro = await prisma.book.findMany({
+    const livros = await prisma.book.findMany({
       include: { genero: true, status: true },
       orderBy: { titulo: "asc" },
     });
 
-    if (livro.length === 0) {
-      return NextResponse.json(
-        {
-          message: "Nenhum livro cadastrado.",
-        },
-        { status: 404 }
-      );
-    }
-
     return NextResponse.json({
-      message: "Todos os livros foram listados com sucesso!",
-      books: livro.map((livro) => ({
-        id: livro.id,
-        titulo: livro.titulo,
-        autor: livro.autor,
-        genero: livro.genero?.categoryName,
-        anoPublicacao: livro.anoPublicacao,
-        paginas: livro.paginas,
-        status: livro?.status?.statusName.toUpperCase(),
-        avaliacao: livro.avaliacao,
+      message: livros.length
+        ? "Todos os livros foram listados com sucesso!"
+        : "Nenhum livro cadastrado.",
+      books: livros.map((l) => ({
+        id: l.id,
+        titulo: l.titulo,
+        autor: l.autor,
+        genero: l.genero?.categoryName ?? null,
+        anoPublicacao: l.anoPublicacao,
+        paginas: l.paginas,
+        status: l.status?.statusName?.toUpperCase() ?? null,
+        avaliacao: l.avaliacao,
       })),
     });
-  } catch (error: any) {
+  } catch (error) {
+    console.error("Erro ao listar todos os livros:", error);
     return NextResponse.json(
       {
         error: "Erro ao listar todos os livros.",
-        details: "Revise o arquivo. Talvez ele esteja corrompido ou vazio.",
+        details: "Ocorreu um erro interno ao acessar o banco de dados.",
       },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }

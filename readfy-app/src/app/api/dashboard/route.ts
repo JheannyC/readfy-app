@@ -1,21 +1,19 @@
 import { PrismaClient } from "@prisma/client";
+import { NextResponse } from "next/server";
+
 const prisma = new PrismaClient();
 
 export async function GET() {
   try {
-    const books = await prisma.book.findMany({
-      include: { genero: true, status: true },
+    const aberto = await prisma.book.count({
+      where: { status: { statusName: "aberto" } },
     });
-
-    const aberto = books.filter(
-      (b: any) => b.status.statusName === "aberto"
-    ).length;
-    const fechado = books.filter(
-      (b: any) => b.status.statusName === "fechado"
-    ).length;
-    const finalizados = books.filter(
-      (b: any) => b.status.statusName === "finalizado"
-    ).length;
+    const fechado = await prisma.book.count({
+      where: { status: { statusName: "fechado" } },
+    });
+    const finalizados = await prisma.book.count({
+      where: { status: { statusName: "finalizado" } },
+    });
 
     const paginasLidas = await prisma.book.aggregate({
       _sum: { paginas: true },
@@ -23,15 +21,18 @@ export async function GET() {
     });
     const totalPaginasLidas = paginasLidas._sum.paginas || 0;
 
-    return Response.json({
-      totalLivrosRegistrados: books.length,
+    const totalLivrosRegistrados = await prisma.book.count();
+
+    return NextResponse.json({
+      totalLivrosRegistrados,
       livrosNaoIniciados: fechado,
       livrosAbertos: aberto,
       livrosFinalizados: finalizados,
-      totalPaginasLidas: totalPaginasLidas,
+      totalPaginasLidas,
     });
-  } catch (error: any) {
-    return Response.json(
+  } catch (error) {
+    console.error("Erro ao gerar estatísticas:", error);
+    return NextResponse.json(
       {
         error: "Erro ao gerar estatísticas",
         details:
@@ -39,5 +40,7 @@ export async function GET() {
       },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }
