@@ -1,94 +1,180 @@
-import { promises as fs } from "fs";
-import path from "path";
-import { Book } from "@/app/types/book";
-import { Status } from "@/app/dashboard/enum/StatusEnum";
+import { NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
 
 export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
+    const id = Number(params.id);
+    if (isNaN(id)) {
+      return NextResponse.json({ error: "ID inválido." }, { status: 400 });
+    }
+
     const body = await request.json();
+    const {
+      titulo,
+      autor,
+      genero,
+      anoPublicacao,
+      paginas,
+      status,
+      avaliacao,
+      imgURL,
+    } = body as Record<string, any>;
 
-    const filePath = path.join(process.cwd(), "data", "books.json");
-    const data = await fs.readFile(filePath, "utf-8");
-    let books: Book[] = JSON.parse(data);
+    if (
+      titulo !== undefined &&
+      (typeof titulo !== "string" || !titulo.trim())
+    ) {
+      return NextResponse.json({ error: "Título inválido." }, { status: 400 });
+    }
+    if (autor !== undefined && (typeof autor !== "string" || !autor.trim())) {
+      return NextResponse.json({ error: "Autor inválido." }, { status: 400 });
+    }
+    if (
+      anoPublicacao !== undefined &&
+      (typeof anoPublicacao !== "number" || anoPublicacao <= 0)
+    ) {
+      return NextResponse.json(
+        { error: "Ano de publicação inválido." },
+        { status: 400 }
+      );
+    }
+    if (
+      paginas !== undefined &&
+      (typeof paginas !== "number" || paginas <= 0)
+    ) {
+      return NextResponse.json(
+        { error: "Número de páginas inválido." },
+        { status: 400 }
+      );
+    }
+    if (
+      avaliacao !== undefined &&
+      (typeof avaliacao !== "number" || avaliacao < 0 || avaliacao > 5)
+    ) {
+      return NextResponse.json(
+        { error: "Avaliação deve ser número entre 0 e 5." },
+        { status: 400 }
+      );
+    }
+    const livroExistente = await prisma.book.findUnique({ where: { id } });
+    if (!livroExistente) {
+      return NextResponse.json(
+        { error: "Livro não encontrado." },
+        { status: 404 }
+      );
+    }
+    let statusExistente = null;
+    if (status !== undefined) {
+      if (typeof status !== "string") {
+        return NextResponse.json(
+          { error: "Status inválido." },
+          { status: 400 }
+        );
+      }
 
-    const index = books.findIndex((b) => b.id === id);
-    if (index === -1) {
-      return Response.json({ error: "Livro não encontrado." }, { status: 404 });
+      const statusNormalized = status.toUpperCase().trim();
+      const allowed = ["ABERTO", "FECHADO", "FINALIZADO"];
+
+      if (!allowed.includes(statusNormalized)) {
+        return NextResponse.json(
+          {
+            error:
+              "Status inválido. Deve ser 'ABERTO', 'FECHADO' ou 'FINALIZADO'.",
+          },
+          { status: 400 }
+        );
+      }
+
+      statusExistente = await prisma.status.findUnique({
+        where: { statusName: statusNormalized },
+      });
+
+      if (!statusExistente) {
+        statusExistente = await prisma.status.create({
+          data: { statusName: statusNormalized },
+        });
+      }
     }
 
-    const { id: _, ...updateFields } = body;
-    books[index] = { ...books[index], ...updateFields };
+    let generoExistente = null;
+    if (genero !== undefined) {
+      if (typeof genero !== "string" || !genero.trim()) {
+        return NextResponse.json(
+          { error: "Gênero inválido." },
+          { status: 400 }
+        );
+      }
 
-    await fs.writeFile(filePath, JSON.stringify(books, null, 2));
+      const generoNormalized = genero.toLowerCase().trim();
+      generoExistente = await prisma.genre.findUnique({
+        where: { categoryName: generoNormalized },
+      });
 
-    if ("titulo" in updateFields) {
-      if (
-        updateFields.titulo === "" ||
-        typeof updateFields.titulo !== "string"
-      ) {
-        return Response.json(
-          {
-            error: "Não foi possível atualizar o título.",
-            details: "O título contém um valor inválido ou vazio.",
-          },
+      if (!generoExistente) {
+        generoExistente = await prisma.genre.create({
+          data: { categoryName: generoNormalized },
+        });
+      }
+    }
+    if (imgURL !== undefined) {
+      if (typeof imgURL !== "string") {
+        return NextResponse.json(
+          { error: "URL da imagem inválida." },
           { status: 400 }
         );
       }
     }
 
-    if ("autor" in updateFields) {
-      if (updateFields.autor === "" || typeof updateFields.autor !== "string") {
-        return Response.json(
-          {
-            error: "Não foi possível atualizar o autor.",
-            details: "O autor contém um valor inválido ou vazio.",
-          },
-          { status: 400 }
-        );
-      }
+    const updateData: any = {};
+    if (titulo !== undefined) updateData.titulo = titulo.trim();
+    if (autor !== undefined) updateData.autor = autor.trim();
+    if (anoPublicacao !== undefined) updateData.anoPublicacao = anoPublicacao;
+    if (paginas !== undefined) updateData.paginas = paginas;
+    if (avaliacao !== undefined) updateData.avaliacao = avaliacao;
+    if (imgURL !== undefined) updateData.imgURL = imgURL;
+    if (statusExistente)
+      updateData.status = { connect: { id: statusExistente.id } };
+    if (generoExistente)
+      updateData.genero = { connect: { id: generoExistente.id } };
+
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json(
+        { error: "Nenhum campo para atualizar." },
+        { status: 400 }
+      );
     }
 
-    if ("status" in updateFields) {
-      if (
-        ![Status.fechado, Status.aberto, Status.finalizado].includes(updateFields.status) ||
-        typeof updateFields.status !== "string"
-      ) {
-        return Response.json(
-          {
-            error: "Não foi possível atualizar o status.",
-            details: "O status deve ser 'Fechado', 'Aberto' ou 'Finalizado'.",
-          },
-          { status: 400 }
-        );
-      }
-    }
-
-    if ("avaliacao" in updateFields) {
-      if (
-        typeof updateFields.avaliacao !== "number" ||
-        updateFields.avaliacao < 0 ||
-        updateFields.avaliacao > 5
-      ) {
-        return Response.json(
-          {
-            error: "Não foi possível atualizar a avaliação.",
-            details: "A avaliação deve ser um número entre 0 e 5.",
-          },
-          { status: 400 }
-        );
-      }
-    }
-
-    return Response.json({
-      message: "Livro atualizado com sucesso!",
-      book: books[index],
+    const livroAtualizado = await prisma.book.update({
+      where: { id },
+      data: updateData,
+      include: { genero: true, status: true },
     });
+
+    return NextResponse.json(
+      {
+        message: "Livro atualizado com sucesso!",
+        livro: {
+          id: livroAtualizado.id,
+          titulo: livroAtualizado.titulo,
+          autor: livroAtualizado.autor,
+          anoPublicacao: livroAtualizado.anoPublicacao,
+          paginas: livroAtualizado.paginas,
+          avaliacao: livroAtualizado.avaliacao,
+          status: livroAtualizado.status?.statusName ?? null,
+          genero: livroAtualizado.genero?.categoryName ?? null,
+          imgURL: livroAtualizado.imgURL,
+        },
+      },
+      { status: 200 }
+    );
   } catch (error: any) {
-    return Response.json(
+    console.error(error);
+    return NextResponse.json(
       {
         error: "Erro ao atualizar livro.",
         details:
@@ -96,5 +182,7 @@ export async function PUT(
       },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }

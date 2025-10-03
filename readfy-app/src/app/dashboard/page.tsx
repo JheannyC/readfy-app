@@ -46,19 +46,14 @@ export default function Dashboard() {
     try {
       setLoading(true);
       const response = await fetch('/api/books');
-      
+       const result = await response.json();
       if (response.ok) {
-        const result = await response.json();
-        setBooks(result.books || []);
+        
+        setBooks(result.books|| []);
       } else {
         console.error('Erro ao carregar livros');
-        // Se a API falhar, usar dados de exemplo
-        addSampleBooks();
+        result.message.error('Erro ao carregar livros:', result.message);
       }
-    } catch (error) {
-      console.error('Erro:', error);
-      // Se houver erro, usar dados de exemplo
-      addSampleBooks();
     } finally {
       setLoading(false);
     }

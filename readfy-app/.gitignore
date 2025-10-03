@@ -41,5 +41,5 @@ yarn-error.log*
 next-env.d.ts
 
 .vscode
-readfy-app/prisma/dev.db
-readfy-app/prisma/migrations/20250927145903_init/migration.sql
+
+

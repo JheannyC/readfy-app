@@ -1,5 +1,5 @@
 export enum Status {
-  aberto = "Aberto",
-  fechado = "Fechado",
-  finalizado = "Finalizado",
+  aberto = "ABERTO",
+  fechado = "FECHADO",
+  finalizado = "FINALIZADO",
 }

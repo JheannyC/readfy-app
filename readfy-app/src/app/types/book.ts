@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from "uuid";
 import { Status } from "@/app/dashboard/enum/StatusEnum";
 
 export interface Book {
@@ -13,6 +12,7 @@ export interface Book {
 }
 
 export function createBook(
+  id: string,
   titulo: string,
   autor: string,
   genero: string,
@@ -22,7 +22,7 @@ export function createBook(
   avaliacao: number
 ): Book {
   return {
-    id: uuidv4(),
+    id,
     titulo,
     autor,
     genero,
