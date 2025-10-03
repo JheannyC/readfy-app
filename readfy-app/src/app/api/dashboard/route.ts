@@ -42,7 +42,6 @@ export async function GET() {
       });
     }
   } catch (error) {
-    console.error("Erro ao gerar estatísticas:", error);
     return NextResponse.json(
       {
         error: "Erro ao gerar estatísticas",

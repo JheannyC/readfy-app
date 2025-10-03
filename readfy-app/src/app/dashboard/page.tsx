@@ -4,7 +4,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { StatusEnum } from "@prisma/client";
 import { Book } from "@/app/types/book";
-import { DashboardResponse, DashboardDetailsResponse } from "@/app/types/dashboard";
+import { DashboardResponse } from "@/app/types/dashboard";
+import { toast } from "react-toastify";
+import ConfirmDeleteModal from "@/app/components/ConfirmDeleteModal";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -15,14 +17,11 @@ export default function Dashboard() {
   const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(
     null
   );
-  const [dashboardDetails, setDashboardDetails] = useState<DashboardDetailsResponse | null>(
-    null
-  );
-
   const [loadingBooks, setLoadingBooks] = useState(true);
   const [loadingDashboard, setLoadingDashboard] = useState(true);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
   const [deletingBookId, setDeletingBookId] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const loadDashboard = async () => {
     try {
@@ -62,7 +61,7 @@ export default function Dashboard() {
         }
       } catch (err) {
         console.error("Erro loadBooks:", err);
-        alert("Erro ao carregar livros: " + err);
+        toast.error("Erro ao carregar livros: " + err);
       } finally {
         setLoadingBooks(false);
       }
@@ -88,7 +87,6 @@ export default function Dashboard() {
   }, [searchTerm, books]);
 
   const handleDelete = async (bookId: string) => {
-    if (!confirm("Tem certeza que deseja excluir este livro?")) return;
     try {
       setDeletingBookId(bookId);
       const res = await fetch(`/api/book/delete/${bookId}`, {
@@ -101,7 +99,8 @@ export default function Dashboard() {
       }
 
       const json = await res.json();
-      alert(json.message ?? "Livro excluído com sucesso!");
+      toast.success(json.message ?? "Livro excluído com sucesso!");
+      setIsModalOpen(false);
 
       setBooks((prev) => prev.filter((b) => b.id !== bookId));
       setFilteredBooks((prev) => prev.filter((b) => b.id !== bookId));
@@ -109,7 +108,7 @@ export default function Dashboard() {
       await loadDashboard();
     } catch (err) {
       console.error("Erro deletar:", err);
-      alert("Erro ao excluir: " + String(err));
+      toast.error("Erro ao excluir: " + String(err));
     } finally {
       setDeletingBookId(null);
     }
@@ -180,7 +179,7 @@ export default function Dashboard() {
 
         {dashboardError && (
           <div className="mb-4 text-sm text-red-600">
-            Erro ao carregar estatísticas: {dashboardError}
+            Erro ao carregar estatísticas: {dashboardData?.details}
           </div>
         )}
         {/* Busca */}
@@ -262,19 +261,27 @@ export default function Dashboard() {
 
                 <div className="flex justify-end space-x-2 mt-4 pt-4 border-t border-gray-100">
                   <a
-                    href={`/book/${book.id}/edit`}
+                    href={`/book/update/${book.id}`}
                     className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                     title="Editar livro"
                   >
                     ✏️
                   </a>
                   <button
-                    onClick={() => handleDelete(book.id)}
+                    onClick={() => {
+                      setIsModalOpen(true);
+                    }}
                     className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                     title="Excluir livro"
                   >
                     🗑️
                   </button>
+                        <ConfirmDeleteModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={() => handleDelete(book.id)}
+        bookTitle={book.titulo}
+      />
                 </div>
               </div>
             ))
