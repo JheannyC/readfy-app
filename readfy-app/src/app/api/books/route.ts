@@ -19,14 +19,14 @@ export async function GET() {
 
     return Response.json({
       message: "Todos os livros foram listados com sucesso!",
-      Book: livro.map((livro) => ({
+      books: livro.map((livro) => ({
         id: livro.id,
         titulo: livro.titulo,
         autor: livro.autor,
         genero: livro.genero?.categoryName,
         anoPublicacao: livro.anoPublicacao,
         paginas: livro.paginas,
-        status: livro?.status?.statusName,
+        status: livro?.status?.statusName.toUpperCase(),
         avaliacao: livro.avaliacao,
       })),
     });
