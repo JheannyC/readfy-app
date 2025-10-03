@@ -1,21 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma";
 
-const prisma = new PrismaClient();
+interface Params {
+  id: string;
+}
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<Params> }
 ) {
   try {
-    const id = Number(params.id);
+    const { id } = await context.params;
+    const livroId = Number(id);
 
-    if (!Number.isInteger(id) || id <= 0) {
+    if (!Number.isInteger(livroId) || livroId <= 0) {
       return NextResponse.json({ error: "ID inválido." }, { status: 400 });
     }
 
     const livro = await prisma.book.findUnique({
-      where: { id },
+      where: { id: livroId },
       select: { id: true },
     });
 
@@ -30,7 +33,7 @@ export async function DELETE(
       );
     }
 
-    await prisma.book.delete({ where: { id } });
+    await prisma.book.delete({ where: { id: livroId } });
 
     return NextResponse.json({
       message: "Livro excluído com sucesso!",
