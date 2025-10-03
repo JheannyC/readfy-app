@@ -1,21 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma";
+import type { Book } from "@prisma/client";
 
-const prisma = new PrismaClient();
+interface Params {
+  id: string;
+}
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<Params> }
 ) {
   try {
-    const id = Number(params.id);
+    const { id } = await context.params;
+    const livroId = Number(id);
 
-    if (!Number.isInteger(id) || id <= 0) {
+    if (!Number.isInteger(livroId) || livroId <= 0) {
       return NextResponse.json({ error: "ID inválido." }, { status: 400 });
     }
 
-    const livro = await prisma.book.findUnique({
-      where: { id },
+    const livro:
+      | (Book & {
+          genero: { categoryName: string } | null;
+          status: { statusName: string } | null;
+        })
+      | null = await prisma.book.findUnique({
+      where: { id: livroId },
       include: { genero: true, status: true },
     });
 
@@ -37,10 +46,10 @@ export async function GET(
           id: livro.id,
           titulo: livro.titulo,
           autor: livro.autor,
-          genero: livro.genero.categoryName,
+          genero: livro.genero?.categoryName ?? null,
           anoPublicacao: livro.anoPublicacao,
           paginas: livro.paginas,
-          status: livro.status.statusName,
+          status: livro.status?.statusName ?? null,
           avaliacao: livro.avaliacao,
         },
       },

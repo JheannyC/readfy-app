@@ -1,16 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma";
 
-const prisma = new PrismaClient();
+interface BookBody {
+  titulo: string;
+  autor: string;
+  genero: string;
+  anoPublicacao: number;
+  paginas: number;
+  imgURL?: string;
+}
 
-function validateStringField(value: any, fieldName: string) {
+function validateStringField(value: unknown, fieldName: string) {
   if (!value || typeof value !== "string" || !value.trim()) {
     return `${fieldName} é obrigatório e deve ser uma string válida.`;
   }
   return null;
 }
 
-function validateNumberField(value: any, fieldName: string) {
+function validateNumberField(value: unknown, fieldName: string) {
   if (typeof value !== "number" || value <= 0) {
     return `${fieldName} deve ser um número maior que zero.`;
   }
@@ -19,7 +26,7 @@ function validateNumberField(value: any, fieldName: string) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = (await request.json()) as BookBody;
     const { titulo, autor, genero, anoPublicacao, paginas, imgURL } = body;
 
     const errors = [
@@ -35,8 +42,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: errors.join(" ") }, { status: 400 });
     }
 
+    // Normaliza e cria gênero se não existir
     const generoNormalized = genero.toLowerCase().trim();
-
     let generoExistente = await prisma.genre.findUnique({
       where: { categoryName: generoNormalized },
     });
@@ -46,6 +53,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Status padrão "fechado"
     let statusExistente = await prisma.status.findUnique({
       where: { statusName: "fechado" },
     });
@@ -88,6 +96,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
+    console.error("Erro ao registrar livro:", error);
     return NextResponse.json(
       {
         error: "Não foi possível registrar o livro.",

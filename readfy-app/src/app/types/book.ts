@@ -18,8 +18,6 @@ export function createBook(
   genero: string,
   anoPublicacao: number,
   paginas: number,
-  status: Status.fechado| Status.aberto | Status.finalizado,
-  avaliacao: number
 ): Book {
   return {
     id,
@@ -32,3 +30,15 @@ export function createBook(
     avaliacao: 0,
   };
 }
+
+export interface BookBody {
+  titulo?: string;
+  autor?: string;
+  genero?: string;
+  anoPublicacao?: number;
+  paginas?: number;
+  status?: "ABERTO" | "FECHADO" | "FINALIZADO";
+  avaliacao?: number;
+  imgURL?: string;
+}
+

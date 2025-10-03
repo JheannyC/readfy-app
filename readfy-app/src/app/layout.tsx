@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -34,11 +35,18 @@ export default function RootLayout({
                 <h1 className="text-xl font-bold text-gray-900">📚 Readfy</h1>
               </div>
               <div className="flex items-center space-x-4">
-                <a href="/" className="text-gray-600 hover:text-gray-900">Início</a>
-                <a href="/dashboard" className="text-gray-600 hover:text-gray-900">Dashboard</a>
-                <a href="/book/register" className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                <Link href="/" className="text-gray-600 hover:text-gray-900">
+                  Início
+                </Link>
+                <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
+                  Dashboard
+                </Link>
+                <Link
+                  href="/book/register"
+                  className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+                >
                   + Novo Livro
-                </a>
+                </Link>
               </div>
             </div>
           </div>
