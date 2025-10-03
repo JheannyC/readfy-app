@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { StatusEnum } from "@prisma/client";
 
 interface BookBody {
   titulo: string;
@@ -55,11 +56,11 @@ export async function POST(request: NextRequest) {
 
     // Status padrão "fechado"
     let statusExistente = await prisma.status.findUnique({
-      where: { statusName: "fechado" },
+      where: { statusName: StatusEnum.Fechado},
     });
     if (!statusExistente) {
       statusExistente = await prisma.status.create({
-        data: { statusName: "fechado" },
+        data: { statusName:  StatusEnum.Fechado },
       });
     }
 
@@ -88,7 +89,7 @@ export async function POST(request: NextRequest) {
           genero: livro.genero?.categoryName,
           anoPublicacao: livro.anoPublicacao,
           paginas: livro.paginas,
-          status: livro.status?.statusName.toLowerCase(),
+          status: livro.status?.statusName,
           avaliacao: livro.avaliacao,
           imgURL: livro.imgURL,
         },
