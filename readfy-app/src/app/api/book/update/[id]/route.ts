@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, StatusEnum } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -41,17 +41,17 @@ function validateNumber(
 }
 
 async function getOrCreateStatus(status: string) {
-  const normalized = status.toUpperCase().trim();
-  const allowed = ["ABERTO", "FECHADO", "FINALIZADO"];
+  const normalized = status.trim();
+  const allowed = ["Aberto", "Fechado", "Finalizado"];
   if (!allowed.includes(normalized)) throw new Error("Status inválido");
 
   let statusExistente = await prisma.status.findUnique({
-    where: { statusName: normalized },
+    where: { statusName: normalized as StatusEnum },
   });
 
   if (!statusExistente) {
     statusExistente = await prisma.status.create({
-      data: { statusName: normalized },
+      data: { statusName: normalized as StatusEnum },
     });
   }
   return statusExistente;
@@ -173,7 +173,7 @@ export async function PUT(
           anoPublicacao: livroAtualizado.anoPublicacao,
           paginas: livroAtualizado.paginas,
           avaliacao: livroAtualizado.avaliacao,
-          status: livroAtualizado.status?.statusName ?? null,
+          status: livroAtualizado.status?.statusName?? null,
           genero: livroAtualizado.genero?.categoryName ?? null,
           imgURL: livroAtualizado.imgURL,
         },

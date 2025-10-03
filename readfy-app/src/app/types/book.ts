@@ -1,4 +1,4 @@
-import { Status } from "@/app/dashboard/enum/StatusEnum";
+import { StatusEnum } from "@prisma/client";
 
 export interface Book {
   id: string;
@@ -8,7 +8,8 @@ export interface Book {
   anoPublicacao: number;
   avaliacao: number;
   paginas: number;
-  status: Status.fechado| Status.aberto | Status.finalizado;
+  status: StatusEnum;
+  imgURL?: string;
 }
 
 export function createBook(
@@ -26,8 +27,9 @@ export function createBook(
     genero,
     anoPublicacao,
     paginas,
-    status: Status.fechado,
+    status: StatusEnum.Fechado,
     avaliacao: 0,
+    imgURL: "",
   };
 }
 
@@ -37,7 +39,7 @@ export interface BookBody {
   genero?: string;
   anoPublicacao?: number;
   paginas?: number;
-  status?: "ABERTO" | "FECHADO" | "FINALIZADO";
+  status?: StatusEnum;
   avaliacao?: number;
   imgURL?: string;
 }
