@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export async function DELETE(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -17,7 +17,7 @@ export async function DELETE(
       include: { genero: true, status: true },
     });
     if (!livro)
-      return Response.json(
+      return NextResponse.json(
         {
           error: "Livro não encontrado.",
           details:
@@ -30,11 +30,11 @@ export async function DELETE(
       where: { id },
     });
 
-    return Response.json({
+    return NextResponse.json({
       message: "Livro excluído com sucesso!",
     });
   } catch (error: any) {
-    return Response.json(
+    return NextResponse.json(
       {
         error: "Erro ao excluir livro",
         details:

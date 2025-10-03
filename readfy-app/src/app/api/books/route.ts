@@ -1,7 +1,8 @@
+import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const livro = await prisma.book.findMany({
       include: { genero: true, status: true },
@@ -9,7 +10,7 @@ export async function GET() {
     });
 
     if (livro.length === 0) {
-      return Response.json(
+      return NextResponse.json(
         {
           message: "Nenhum livro cadastrado.",
         },
@@ -17,7 +18,7 @@ export async function GET() {
       );
     }
 
-    return Response.json({
+    return NextResponse.json({
       message: "Todos os livros foram listados com sucesso!",
       books: livro.map((livro) => ({
         id: livro.id,
@@ -31,7 +32,7 @@ export async function GET() {
       })),
     });
   } catch (error: any) {
-    return Response.json(
+    return NextResponse.json(
       {
         error: "Erro ao listar todos os livros.",
         details: "Revise o arquivo. Talvez ele esteja corrompido ou vazio.",

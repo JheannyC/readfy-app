@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
@@ -8,33 +8,33 @@ export async function POST(request: NextRequest) {
     const { titulo, autor, genero, anoPublicacao, paginas, imgURL } = body;
 
     if (!titulo || typeof titulo !== "string") {
-      return Response.json(
+      return NextResponse.json(
         { error: "Título do livro é obrigatório." },
         { status: 400 }
       );
     }
     if (!titulo || typeof titulo !== "string") {
-      return Response.json(
+      return NextResponse.json(
         { error: "Título do livro é obrigatório." },
         { status: 400 }
       );
     }
     if (!autor || typeof autor !== "string") {
-      return Response.json(
+      return NextResponse.json(
         { error: "Autor do livro é obrigatório." },
         { status: 400 }
       );
     }
      if (!genero || genero !== undefined) {
       if (typeof genero !== "string" || !genero.trim()) {
-        return Response.json(
+        return NextResponse.json(
           { error: "Gênero do livro é obrigatório." },
           { status: 400 }
         );
       }
     }
     if (imgURL && typeof imgURL !== "string") {
-      return Response.json(
+      return NextResponse.json(
         { error: "URL da imagem inválida." },
         { status: 400 }
       );
@@ -44,13 +44,13 @@ export async function POST(request: NextRequest) {
       typeof anoPublicacao !== "number" ||
       anoPublicacao <= 0
     ) {
-      return Response.json(
+      return NextResponse.json(
         { error: "Ano de publicação inválido." },
         { status: 400 }
       );
     }
     if (!paginas || typeof paginas !== "number" || paginas <= 0) {
-      return Response.json(
+      return NextResponse.json(
         { error: "Número de páginas inválido." },
         { status: 400 }
       );
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return Response.json(
+    return NextResponse.json(
       {
         message: "Livro registrado com sucesso!",
         livro: {
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error: any) {
-    return Response.json(
+    return NextResponse.json(
       {
         error: "Não foi possível registrar o livro.",
         details:

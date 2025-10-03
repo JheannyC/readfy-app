@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -18,7 +18,7 @@ export async function GET(
     });
 
     if (!livro)
-      return Response.json(
+      return NextResponse.json(
         {
           error: "Livro não encontrado.",
           details:
@@ -27,7 +27,7 @@ export async function GET(
         { status: 404 }
       );
 
-    return Response.json(
+    return NextResponse.json(
       {
         message: "Livro encontrado com sucesso!",
         livro: {
@@ -44,7 +44,7 @@ export async function GET(
       { status: 200 }
     );
   } catch (error: any) {
-    return Response.json(
+    return NextResponse.json(
       {
         error: "Erro ao retornar os dados do livro.",
         details:
