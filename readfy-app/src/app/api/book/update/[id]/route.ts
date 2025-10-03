@@ -1,6 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { Book } from "@/app/types/book";
+import { Status } from "@/app/dashboard/enum/StatusEnum";
 
 export async function PUT(
   request: Request,
@@ -53,13 +54,13 @@ export async function PUT(
 
     if ("status" in updateFields) {
       if (
-        !["fechado", "aberto", "finalizado"].includes(updateFields.status) ||
+        ![Status.fechado, Status.aberto, Status.finalizado].includes(updateFields.status) ||
         typeof updateFields.status !== "string"
       ) {
         return Response.json(
           {
             error: "Não foi possível atualizar o status.",
-            details: "O status deve ser 'fechado', 'aberto' ou 'finalizado'.",
+            details: "O status deve ser 'Fechado', 'Aberto' ou 'Finalizado'.",
           },
           { status: 400 }
         );

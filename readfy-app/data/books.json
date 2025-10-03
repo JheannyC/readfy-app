@@ -6,7 +6,7 @@
     "genero": "Fábula",
     "anoPublicacao": 1943,
     "paginas": 365,
-    "status": "aberto",
+    "status": "Aberto",
     "avaliacao": 5
   },
   {
@@ -16,7 +16,7 @@
     "genero": "Fábula",
     "anoPublicacao": 1943,
     "paginas": 365,
-    "status": "finalizado",
+    "status": "Finalizado",
     "avaliacao": 5
   },
   {
@@ -26,7 +26,7 @@
     "genero": "Fábula",
     "anoPublicacao": 1943,
     "paginas": 365,
-    "status": "fechado",
+    "status": "Fechado",
     "avaliacao": 0
   },
   {
@@ -36,7 +36,7 @@
     "genero": "Fábula",
     "anoPublicacao": 1943,
     "paginas": 365,
-    "status": "fechado",
+    "status": "Fechado",
     "avaliacao": 0
   },
   {
@@ -46,7 +46,7 @@
     "genero": "Fábula",
     "anoPublicacao": 1943,
     "paginas": 365,
-    "status": "finalizado",
+    "status": "Finalizado",
     "avaliacao": 0
   }
 ]

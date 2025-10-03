@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Status } from './enum/StatusEnum';
+
+
 
 interface Book {
   id: string;
@@ -9,7 +12,7 @@ interface Book {
   genero: string;
   anoPublicacao: number;
   paginas: number;
-  status: 'Lido' | 'Lendo' | 'Não Lido';
+  status: string;
   avaliacao: number;
 }
 
@@ -71,7 +74,7 @@ export default function Dashboard() {
         genero: 'Romance',
         anoPublicacao: 1899,
         paginas: 256,
-        status: 'Lido',
+        status: 'Finalizado',
         avaliacao: 5
       },
       {
@@ -81,7 +84,7 @@ export default function Dashboard() {
         genero: 'Ficção Científica',
         anoPublicacao: 1949,
         paginas: 328,
-        status: 'Lendo',
+        status: 'Aberto',
         avaliacao: 4
       },
       {
@@ -91,7 +94,7 @@ export default function Dashboard() {
         genero: 'Literatura Infantil',
         anoPublicacao: 1943,
         paginas: 96,
-        status: 'Não Lido',
+        status: 'Fechado',
         avaliacao: 0
       },
       {
@@ -101,7 +104,7 @@ export default function Dashboard() {
         genero: 'Fantasia',
         anoPublicacao: 1997,
         paginas: 223,
-        status: 'Lido',
+        status: 'Finalizado',
         avaliacao: 5
       },
       {
@@ -111,7 +114,7 @@ export default function Dashboard() {
         genero: 'Fantasia',
         anoPublicacao: 1954,
         paginas: 1178,
-        status: 'Lendo',
+        status: 'Aberto',
         avaliacao: 0
       },
       {
@@ -121,7 +124,7 @@ export default function Dashboard() {
         genero: 'Romance',
         anoPublicacao: 1813,
         paginas: 432,
-        status: 'Não Lido',
+        status: 'Fechado',
         avaliacao: 0
       }
     ];
@@ -168,25 +171,25 @@ export default function Dashboard() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
             <div className="text-2xl font-bold text-gray-900">{books.length}</div>
-            <div className="text-sm text-gray-600">Total de Livros</div>
+            <div className="text-sm text-gray-600">Total de livros</div>
           </div>
           <div className="bg-white p-4 rounded-lg shadow border-l-4 border-green-500">
             <div className="text-2xl font-bold text-gray-900">
-              {books.filter(book => book.status === 'Lido').length}
+              {books.filter(book => book.status === Status.finalizado).length}
             </div>
-            <div className="text-sm text-gray-600">Lidos</div>
+            <div className="text-sm text-gray-600">Leitura finalizada</div>
           </div>
           <div className="bg-white p-4 rounded-lg shadow border-l-4 border-yellow-500">
             <div className="text-2xl font-bold text-gray-900">
-              {books.filter(book => book.status === 'Lendo').length}
+              {books.filter(book => book.status === Status.aberto).length}
             </div>
-            <div className="text-sm text-gray-600">Lendo</div>
+            <div className="text-sm text-gray-600">Leitura em andamento</div>
           </div>
           <div className="bg-white p-4 rounded-lg shadow border-l-4 border-gray-500">
             <div className="text-2xl font-bold text-gray-900">
-              {books.filter(book => book.status === 'Não Lido').length}
+              {books.filter(book => book.status === Status.fechado).length}
             </div>
-            <div className="text-sm text-gray-600">Não Lidos</div>
+            <div className="text-sm text-gray-600">Não iniciados</div>
           </div>
         </div>
 

@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
+import { Status } from "@/app/dashboard/enum/StatusEnum";
 
 export interface Book {
   id: string;
@@ -8,7 +9,7 @@ export interface Book {
   anoPublicacao: number;
   avaliacao: number;
   paginas: number;
-  status: "fechado" | "aberto" | "finalizado";
+  status: Status.fechado| Status.aberto | Status.finalizado;
 }
 
 export function createBook(
@@ -17,7 +18,7 @@ export function createBook(
   genero: string,
   anoPublicacao: number,
   paginas: number,
-  status: "fechado" | "aberto" | "finalizado",
+  status: Status.fechado| Status.aberto | Status.finalizado,
   avaliacao: number
 ): Book {
   return {
@@ -27,7 +28,7 @@ export function createBook(
     genero,
     anoPublicacao,
     paginas,
-    status: "fechado",
+    status: Status.fechado,
     avaliacao: 0,
   };
 }
