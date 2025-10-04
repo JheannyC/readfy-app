@@ -1,43 +1,53 @@
-import { promises as fs } from "fs";
-import path from "path";
-import { Book } from "@/app/types/book";
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+
+interface Params {
+  id: string;
+}
 
 export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  context: { params: Promise<Params> }
 ) {
   try {
-    const { id } = params;
-    const filePath = path.join(process.cwd(), "data", "books.json");
-    const data = await fs.readFile(filePath, "utf-8");
-    const books: Book[] = JSON.parse(data);
+    const { id } = await context.params;
+    const livroId = Number(id);
 
-    const livroIndex = books.findIndex((b) => b.id === id);
-    if (livroIndex === -1)
-      return Response.json(
+    if (!Number.isInteger(livroId) || livroId <= 0) {
+      return NextResponse.json({ error: "ID inválido." }, { status: 400 });
+    }
+
+    const livro = await prisma.book.findUnique({
+      where: { id: livroId },
+      select: { id: true },
+    });
+
+    if (!livro) {
+      return NextResponse.json(
         {
           error: "Livro não encontrado.",
           details:
-            "Revise o ID do livro. Talvez ele não exista, esteja incorreto ou não foi passado corretamente na URL.",
+            "Verifique o ID do livro. Ele pode não existir ou ter sido passado incorretamente na URL.",
         },
         { status: 404 }
       );
+    }
 
-    books.splice(livroIndex, 1);
+    await prisma.book.delete({ where: { id: livroId } });
 
-    await fs.writeFile(filePath, JSON.stringify(books, null, 2));
-
-    return Response.json({
+    return NextResponse.json({
       message: "Livro excluído com sucesso!",
     });
-  } catch (error: any) {
-    return Response.json(
+  } catch (error) {
+    console.error("Erro ao excluir livro:", error);
+    return NextResponse.json(
       {
-        error: "Erro ao excluir livro",
-        details:
-          "Revise o ID do livro. Talvez ele não exista, esteja incorreto ou não foi passado corretamente na URL.",
+        error: "Erro ao excluir livro.",
+        details: "Ocorreu um erro interno no servidor.",
       },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }

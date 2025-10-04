@@ -1,94 +1,112 @@
-import { Book, createBook } from "@/app/types/book";
-import { promises as fs } from "fs";
-import path from "path";
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { StatusEnum } from "@prisma/client";
 
-export async function POST(request: Request) {
+interface BookBody {
+  titulo: string;
+  autor: string;
+  genero: string;
+  anoPublicacao: number;
+  paginas: number;
+  imgURL?: string;
+}
+
+function validateStringField(value: unknown, fieldName: string) {
+  if (!value || typeof value !== "string" || !value.trim()) {
+    return `${fieldName} é obrigatório e deve ser uma string válida.`;
+  }
+  return null;
+}
+
+function validateNumberField(value: unknown, fieldName: string) {
+  if (typeof value !== "number" || value <= 0) {
+    return `${fieldName} deve ser um número maior que zero.`;
+  }
+  return null;
+}
+
+export async function POST(request: NextRequest) {
   try {
-    const body: Book = await request.json();
-    const newBook: Book = createBook(
-      body.titulo,
-      body.autor,
-      body.genero,
-      body.anoPublicacao,
-      body.paginas,
-      body.status,
-      body.avaliacao
-    );
+    const body = (await request.json()) as BookBody;
+    const { titulo, autor, genero, anoPublicacao, paginas, imgURL } = body;
 
-    const filePath = path.join(process.cwd(), "data", "books.json");
+    const errors = [
+      validateStringField(titulo, "Título do livro"),
+      validateStringField(autor, "Autor do livro"),
+      validateStringField(genero, "Gênero do livro"),
+      imgURL && typeof imgURL !== "string" ? "URL da imagem inválida." : null,
+      validateNumberField(anoPublicacao, "Ano de publicação"),
+      validateNumberField(paginas, "Número de páginas"),
+    ].filter(Boolean);
 
-    const data = await fs.readFile(filePath, "utf-8");
-    const books: Book[] = JSON.parse(data);
-
-    books.push(newBook);
-
-    await fs.writeFile(filePath, JSON.stringify(books, null, 2));
-
-    if (newBook.titulo === "" || typeof newBook.titulo !== "string") {
-      return Response.json(
-        {
-          error: "Título do livro é obrigatório.",
-          details: "Erro ao registrar livro. O título contém um valor inválido ou vazio.",
-        },
-        { status: 400 }
-      );
-    }
-    if (newBook.autor === "" || typeof newBook.autor != "string") {
-      return Response.json(
-        {
-          error: "Nome do autor é obrigatório.",
-          details: "Erro ao registrar livro. O nome do autor contém um valor inválido ou vazio.",
-        },
-        { status: 400 }
-      );
-    }
-    if (newBook.genero === "" || typeof newBook.genero != "string") {
-      return Response.json(
-        {
-          error: "Gênero do livro é obrigatório.",
-          details: "Erro ao registrar livro. O gênero do livro contém um valor inválido ou vazio.",
-        },
-        { status: 400 }
-      );
+    if (errors.length > 0) {
+      return NextResponse.json({ error: errors.join(" ") }, { status: 400 });
     }
 
-    if (
-      newBook.anoPublicacao === undefined ||
-      newBook.anoPublicacao <= 0 ||
-      typeof newBook.anoPublicacao != "number"
-    ) {
-      return Response.json(
-        {
-          error: "Ano de publicação é obrigatório.",
-          details: "Erro ao registrar livro. O ano de publicação contém um valor inválido ou vazio.",
-        },
-        { status: 400 }
-      );
-    }
-    if (
-      newBook.paginas === undefined ||
-      newBook.paginas <= 0 ||
-      typeof newBook.paginas != "number"
-    ) {
-      return Response.json(
-        {
-          error: "Quantidade de páginas é obrigatório.",
-          details: "Erro ao registrar livro. A quantidade de páginas contém um valor inválido ou vazio.",
-        },
-        { status: 400 }
-      );
-    }
-
-    return Response.json({
-      message: "Livro registrado com sucesso!",
-      livro: newBook,
+    // Normaliza e cria gênero se não existir
+    const generoNormalized = genero.toLowerCase().trim();
+    let generoExistente = await prisma.genre.findUnique({
+      where: { categoryName: generoNormalized },
     });
-  } catch (error: any) {
-    return Response.json(
-      { error: "Não foi possível registrar o livro.", 
-        details: "Revise os dados enviados no body da request. Algum campo pode não ter sido preenchido corretamente ou a formatação está incorreta."
+    if (!generoExistente) {
+      generoExistente = await prisma.genre.create({
+        data: { categoryName: generoNormalized },
+      });
+    }
+
+    // Status padrão "fechado"
+    let statusExistente = await prisma.status.findUnique({
+      where: { statusName: StatusEnum.Fechado},
+    });
+    if (!statusExistente) {
+      statusExistente = await prisma.status.create({
+        data: { statusName:  StatusEnum.Fechado },
+      });
+    }
+
+    const livro = await prisma.book.create({
+      data: {
+        titulo,
+        autor,
+        anoPublicacao,
+        paginas,
+        status: { connect: { id: statusExistente.id } },
+        genero: { connect: { id: generoExistente.id } },
+        avaliacao: 0,
+        imgURL: imgURL || "",
+        createdAt: new Date(),
       },
-      { status: 500 }
+      include: { genero: true, status: true },
+    });
+
+    return NextResponse.json(
+      {
+        message: "Livro registrado com sucesso!",
+        livro: {
+          id: livro.id,
+          titulo: livro.titulo,
+          autor: livro.autor,
+          genero: livro.genero?.categoryName,
+          anoPublicacao: livro.anoPublicacao,
+          paginas: livro.paginas,
+          status: livro.status?.statusName,
+          avaliacao: livro.avaliacao,
+          imgURL: livro.imgURL,
+        },
+      },
+      { status: 201 }
     );
+  } catch (error) {
+    console.error("Erro ao registrar livro:", error);
+    return NextResponse.json(
+      {
+        error: "Não foi possível registrar o livro.",
+        details:
+          "O corpo da requisição não pôde ser interpretado. Verifique a formatação.",
+      },
+      { status: 400 }
+    );
+  } finally {
+    await prisma.$disconnect();
   }
 }

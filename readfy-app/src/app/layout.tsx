@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Lexend_Deca } from "next/font/google";
 import "./globals.css";
+import Header from "@/app/frontend/components/Header";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const fontFamily = Lexend_Deca({
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-lexend-deca",
 });
 
 export const metadata: Metadata = {
@@ -19,15 +18,20 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+    <html lang="pt-BR" className={fontFamily.variable}>
+      <body className="font-sans min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100">
+        <Header />
+        <main className="flex-1 pt-16">{children}</main>
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar
+          theme="colored"
+        />
       </body>
     </html>
   );

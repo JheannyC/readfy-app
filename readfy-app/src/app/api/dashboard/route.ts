@@ -1,38 +1,61 @@
-import { promises as fs } from "fs";
-import path from "path";
-import { Book } from "@/app/types/book";
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { StatusEnum } from "@prisma/client";
 
 export async function GET() {
   try {
-    const filePath = path.join(process.cwd(), "data", "books.json");
-    const data = await fs.readFile(filePath, "utf-8");
-    const books: Book[] = JSON.parse(data);
+    const totalLivrosRegistrados = await prisma.book.count();
 
-    const aberto = books.filter((b: any) => b.status === "aberto").length;
-    const fechado = books.filter((b: any) => b.status === "fechado").length;
-    const finalizados = books.filter(
-      (b: any) => b.status === "finalizado"
-    ).length;
-    const paginasLidas = books
-      .filter((b: any) => b.status === "finalizado")
-      .reduce((acc: number, b: any) => acc + (b.paginas || 0), 0);
+    if (totalLivrosRegistrados === 0) {
+      return NextResponse.json(
+        {
+          totalLivrosRegistrados: 0,
+          livrosNaoIniciados: 0,
+          livrosAbertos: 0,
+          livrosFinalizados: 0,
+          totalPaginasLidas: 0,
+          details:
+            "Nenhum livro foi registrado. Adicione um livro para começar.",
+        },
+        { status: 200 }
+      );
+    }
 
-    return Response.json({
-      totalLivrosRegistrados: books.length,
+    const aberto = await prisma.book.count({
+      where: { status: { statusName: StatusEnum.Aberto } },
+    });
+
+    const fechado = await prisma.book.count({
+      where: { status: { statusName: StatusEnum.Fechado } },
+    });
+
+    const finalizados = await prisma.book.count({
+      where: { status: { statusName: StatusEnum.Finalizado } },
+    });
+
+    const paginasLidas = await prisma.book.aggregate({
+      _sum: { paginas: true },
+      where: { status: { statusName: StatusEnum.Finalizado } },
+    });
+    const totalPaginasLidas = paginasLidas._sum.paginas || 0;
+
+    return NextResponse.json({
+      totalLivrosRegistrados,
       livrosNaoIniciados: fechado,
       livrosAbertos: aberto,
       livrosFinalizados: finalizados,
-      totalPaginasLidas: paginasLidas,
-
+      totalPaginasLidas,
     });
-  } catch (error: any) {
-    return Response.json(
+  } catch (error) {
+    return NextResponse.json(
       {
         error: "Erro ao gerar estatísticas",
         details:
-          "Revise o arquivo data/books.json. Talvez ele esteja corrompido ou vazio.",
+          "Revise os dados cadastrados. Talvez estejam corrompidos ou vazios.",
       },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }

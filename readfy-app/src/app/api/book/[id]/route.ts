@@ -1,40 +1,70 @@
-import { promises as fs } from "fs";
-import path from "path";
-import { Book } from "@/app/types/book";
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import type { Book } from "@prisma/client";
+
+interface Params {
+  id: string;
+}
 
 export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  context: { params: Promise<Params> }
 ) {
   try {
-    const { id } = params;
-    const filePath = path.join(process.cwd(), "data", "books.json");
-    const data = await fs.readFile(filePath, "utf-8");
-    const books: Book[] = JSON.parse(data);
+    const { id } = await context.params;
+    const livroId = Number(id);
 
-    const livro = books.find((b) => b.id === id);
-    if (!livro)
-      return Response.json(
+    if (!Number.isInteger(livroId) || livroId <= 0) {
+      return NextResponse.json({ error: "ID inválido." }, { status: 400 });
+    }
+
+    const livro:
+      | (Book & {
+          genero: { categoryName: string } | null;
+          status: { statusName: string } | null;
+        })
+      | null = await prisma.book.findUnique({
+      where: { id: livroId },
+      include: { genero: true, status: true },
+    });
+
+    if (!livro) {
+      return NextResponse.json(
         {
           error: "Livro não encontrado.",
           details:
-            "Revise o ID do livro. Talvez ele não exista, esteja incorreto ou não foi passado corretamente na URL.",
+            "Verifique o ID do livro. Ele pode não existir ou ter sido passado incorretamente na URL.",
         },
         { status: 404 }
       );
+    }
 
-    return Response.json({
-      message: "Livro encontrado com sucesso!",
-      livro,
-    });
-  } catch (error: any) {
-    return Response.json(
+    return NextResponse.json(
+      {
+        message: "Livro encontrado com sucesso!",
+        livro: {
+          id: livro.id,
+          titulo: livro.titulo,
+          autor: livro.autor,
+          genero: livro.genero?.categoryName ?? null,
+          anoPublicacao: livro.anoPublicacao,
+          paginas: livro.paginas,
+          status: livro.status?.statusName ?? null,
+          avaliacao: livro.avaliacao,
+        },
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Erro ao buscar livro:", error);
+    return NextResponse.json(
       {
         error: "Erro ao retornar os dados do livro.",
-        details:
-          "Revise o ID do livro. Talvez ele não exista, esteja incorreto ou não foi passado corretamente na URL.",
+        details: "Ocorreu um erro interno no servidor.",
       },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }

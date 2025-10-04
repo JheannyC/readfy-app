@@ -1,25 +1,39 @@
-import { promises as fs } from "fs";
-import path from "path";
-import { Book } from "@/app/types/book";
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const filePath = path.join(process.cwd(), "data", "books.json");
-    const data = await fs.readFile(filePath, "utf-8");
-    const books: Book[] = JSON.parse(data);
-
-    return Response.json({
-      message: "Todos os livros foram listados com sucesso!",
-      books,
+    const livros = await prisma.book.findMany({
+      include: { genero: true, status: true },
+      orderBy: { titulo: "asc" },
     });
-  } catch (error: any) {
-    return Response.json(
+
+    return NextResponse.json({
+      message: livros.length
+        ? "Todos os livros foram listados com sucesso!"
+        : "Nenhum livro cadastrado.",
+      books: livros.map((l) => ({
+        id: l.id,
+        titulo: l.titulo,
+        autor: l.autor,
+        genero: l.genero?.categoryName ?? null,
+        anoPublicacao: l.anoPublicacao,
+        paginas: l.paginas,
+        status: l.status?.statusName?.toUpperCase() ?? null,
+        avaliacao: l.avaliacao,
+        imgURL: l.imgURL,
+      })),
+    });
+  } catch (error) {
+    console.error("Erro ao listar todos os livros:", error);
+    return NextResponse.json(
       {
         error: "Erro ao listar todos os livros.",
-        details:
-          "Revise o arquivo data/books.json. Talvez ele esteja corrompido ou vazio.",
+        details: "Ocorreu um erro interno ao acessar o banco de dados.",
       },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }
