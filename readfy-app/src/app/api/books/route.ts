@@ -21,6 +21,7 @@ export async function GET(req: NextRequest) {
         paginas: l.paginas,
         status: l.status?.statusName?.toUpperCase() ?? null,
         avaliacao: l.avaliacao,
+        imgURL: l.imgURL,
       })),
     });
   } catch (error) {

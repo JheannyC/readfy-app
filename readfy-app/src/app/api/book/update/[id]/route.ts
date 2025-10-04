@@ -163,26 +163,22 @@ export async function PUT(
       include: { genero: true, status: true },
     });
 
-    return NextResponse.json(
-      {
-        message: "Livro atualizado com sucesso!",
-        livro: {
-          id: livroAtualizado.id,
-          titulo: livroAtualizado.titulo,
-          autor: livroAtualizado.autor,
-          anoPublicacao: livroAtualizado.anoPublicacao,
-          paginas: livroAtualizado.paginas,
-          avaliacao: livroAtualizado.avaliacao,
-          status: livroAtualizado.status?.statusName?? null,
-          genero: livroAtualizado.genero?.categoryName ?? null,
-          imgURL: livroAtualizado.imgURL,
-        },
+    return NextResponse.json({
+      message: "Livro atualizado com sucesso!",
+      livro: {
+        id: livroAtualizado.id,
+        titulo: livroAtualizado.titulo,
+        autor: livroAtualizado.autor,
+        anoPublicacao: livroAtualizado.anoPublicacao,
+        paginas: livroAtualizado.paginas,
+        avaliacao: livroAtualizado.avaliacao,
+        status: livroAtualizado.status?.statusName ?? null,
+        genero: livroAtualizado.genero?.categoryName ?? null,
+        imgURL: livroAtualizado.imgURL,
       },
-      { status: 200 }
-    );
+    });
   } catch (error: unknown) {
     console.error("Erro ao atualizar livro:", error);
-    // Checa se error é um Error para acessar message
     const message = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
       {

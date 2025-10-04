@@ -4,6 +4,23 @@ import { StatusEnum } from "@prisma/client";
 
 export async function GET() {
   try {
+    const totalLivrosRegistrados = await prisma.book.count();
+
+    if (totalLivrosRegistrados === 0) {
+      return NextResponse.json(
+        {
+          totalLivrosRegistrados: 0,
+          livrosNaoIniciados: 0,
+          livrosAbertos: 0,
+          livrosFinalizados: 0,
+          totalPaginasLidas: 0,
+          details:
+            "Nenhum livro foi registrado. Adicione um livro para começar.",
+        },
+        { status: 200 }
+      );
+    }
+
     const aberto = await prisma.book.count({
       where: { status: { statusName: StatusEnum.Aberto } },
     });
@@ -22,27 +39,14 @@ export async function GET() {
     });
     const totalPaginasLidas = paginasLidas._sum.paginas || 0;
 
-    const totalLivrosRegistrados = await prisma.book.count();
-
-    if (totalLivrosRegistrados === 0) {
-      return NextResponse.json(
-        {
-          details:
-            "Nenhum livro foi registrado. Adicione um livro para começar.",
-        },
-        { status: 200 }
-      );
-    } else {
-      return NextResponse.json({
-        totalLivrosRegistrados,
-        livrosNaoIniciados: fechado,
-        livrosAbertos: aberto,
-        livrosFinalizados: finalizados,
-        totalPaginasLidas,
-      });
-    }
+    return NextResponse.json({
+      totalLivrosRegistrados,
+      livrosNaoIniciados: fechado,
+      livrosAbertos: aberto,
+      livrosFinalizados: finalizados,
+      totalPaginasLidas,
+    });
   } catch (error) {
-    console.error("Erro ao gerar estatísticas:", error);
     return NextResponse.json(
       {
         error: "Erro ao gerar estatísticas",

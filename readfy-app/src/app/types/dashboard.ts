@@ -4,8 +4,5 @@ export interface DashboardResponse {
   livrosNaoIniciados: number;
   livrosFinalizados: number;
   totalPaginasLidas?: number;
-};
-
-export interface DashboardDetailsResponse {
-  details: string;
+  details?: string;
 }

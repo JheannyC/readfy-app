@@ -15,7 +15,7 @@ export default function Home() {
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
           <Link 
-            href="/dashboard"
+            href="/frontend/dashboard"
             className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
           >
             📊 Acessar Dashboard
