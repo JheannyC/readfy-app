@@ -67,8 +67,9 @@ export default function Dashboard() {
         setLoadingBooks(false);
       }
     };
-    loadBooks();
     loadDashboard();
+    loadBooks();
+
   }, []);
 
   useEffect(() => {
