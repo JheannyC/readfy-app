@@ -4,7 +4,10 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { StatusEnum } from "@prisma/client";
 import { Book } from "@/app/types/book";
-import { DashboardResponse, DashboardDetailsResponse } from "@/app/types/dashboard";
+import { DashboardResponse } from "@/app/types/dashboard";
+import { toast } from "react-toastify";
+import ConfirmDeleteModal from "@/app/frontend/components/ConfirmDeleteModal";
+import StarRating from "@/app/frontend/components/StarRating";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -15,14 +18,11 @@ export default function Dashboard() {
   const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(
     null
   );
-  const [dashboardDetails, setDashboardDetails] = useState<DashboardDetailsResponse | null>(
-    null
-  );
-
   const [loadingBooks, setLoadingBooks] = useState(true);
   const [loadingDashboard, setLoadingDashboard] = useState(true);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
   const [deletingBookId, setDeletingBookId] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const loadDashboard = async () => {
     try {
@@ -62,7 +62,7 @@ export default function Dashboard() {
         }
       } catch (err) {
         console.error("Erro loadBooks:", err);
-        alert("Erro ao carregar livros: " + err);
+        toast.error("Erro ao carregar livros: " + err);
       } finally {
         setLoadingBooks(false);
       }
@@ -88,7 +88,6 @@ export default function Dashboard() {
   }, [searchTerm, books]);
 
   const handleDelete = async (bookId: string) => {
-    if (!confirm("Tem certeza que deseja excluir este livro?")) return;
     try {
       setDeletingBookId(bookId);
       const res = await fetch(`/api/book/delete/${bookId}`, {
@@ -101,7 +100,8 @@ export default function Dashboard() {
       }
 
       const json = await res.json();
-      alert(json.message ?? "Livro excluído com sucesso!");
+      toast.success(json.message ?? "Livro excluído com sucesso!");
+      setIsModalOpen(false);
 
       setBooks((prev) => prev.filter((b) => b.id !== bookId));
       setFilteredBooks((prev) => prev.filter((b) => b.id !== bookId));
@@ -109,7 +109,7 @@ export default function Dashboard() {
       await loadDashboard();
     } catch (err) {
       console.error("Erro deletar:", err);
-      alert("Erro ao excluir: " + String(err));
+      toast.error("Erro ao excluir: " + String(err));
     } finally {
       setDeletingBookId(null);
     }
@@ -127,9 +127,6 @@ export default function Dashboard() {
         return "bg-gray-100 text-gray-800";
     }
   };
-
-  const getRatingStars = (rating: number) =>
-    "⭐".repeat(rating) + "☆".repeat(5 - rating);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -180,7 +177,8 @@ export default function Dashboard() {
 
         {dashboardError && (
           <div className="mb-4 text-sm text-red-600">
-            Erro ao carregar estatísticas: {dashboardError}
+            Erro ao carregar estatísticas:{" "}
+            {loadingDashboard ? "…" : dashboardData?.details}
           </div>
         )}
         {/* Busca */}
@@ -217,9 +215,23 @@ export default function Dashboard() {
             filteredBooks.map((book) => (
               <div
                 key={book.id}
-                className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 p-6"
+                className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 p-6 flex flex-col"
               >
-                <div className="flex justify-between items-start mb-4">
+                {/* Capa do Livro */}
+                <div className="w-full aspect-[2/3] mb-4 overflow-hidden rounded-md bg-gray-100">
+                  <img
+                    src={book.imgURL || "/images/fallback-book.png"}
+                    alt={`Capa do livro ${book.titulo}`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src =
+                        "/images/fallback-book.png";
+                    }}
+                  />
+                </div>
+
+                {/* Header */}
+                <div className="flex justify-between items-start mb-4 flex-1">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
                       {book.titulo}
@@ -237,6 +249,7 @@ export default function Dashboard() {
                   </span>
                 </div>
 
+                {/* Detalhes */}
                 <div className="space-y-2 text-sm text-gray-600">
                   <div className="flex justify-between">
                     <span>Gênero:</span>
@@ -250,31 +263,42 @@ export default function Dashboard() {
                     <span>Páginas:</span>
                     <span className="font-medium">{book.paginas}</span>
                   </div>
-                  {book.avaliacao > 0 && (
-                    <div className="flex justify-between items-center">
-                      <span>Avaliação:</span>
-                      <span className="text-yellow-600 text-xs">
-                        {getRatingStars(book.avaliacao)}
-                      </span>
+
+                  <div className="flex justify-between items-center mt-2">
+                    <span>Avaliação:</span>
+                    <div>
+                      <StarRating
+                        bookId={Number(book.id)}
+                        initialRating={book.avaliacao ?? 0}
+                      />
                     </div>
-                  )}
+                  </div>
                 </div>
 
+                {/* Ações */}
                 <div className="flex justify-end space-x-2 mt-4 pt-4 border-t border-gray-100">
                   <a
-                    href={`/book/${book.id}/edit`}
+                    href={`/book/update/${book.id}`}
                     className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                     title="Editar livro"
                   >
                     ✏️
                   </a>
                   <button
-                    onClick={() => handleDelete(book.id)}
+                    onClick={() => {
+                      setIsModalOpen(true);
+                    }}
                     className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                     title="Excluir livro"
                   >
                     🗑️
                   </button>
+                  <ConfirmDeleteModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    onConfirm={() => handleDelete(book.id)}
+                    bookTitle={book.titulo}
+                  />
                 </div>
               </div>
             ))
