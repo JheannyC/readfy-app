@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Plus, ChartLine, SquareKanban } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default function Home() {
   return (
     <div className="min-h-[calc(100vh-64px)] bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-6">

@@ -5,7 +5,6 @@ import Header from "@/app/frontend/components/Header";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// importa a fonte que você quiser
 const fontFamily = Lexend_Deca({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],

@@ -84,15 +84,26 @@ export default function Dashboard() {
     );
   }, [searchTerm, books]);
 
+  const clearSearch = () => {
+    setSearchTerm("");
+    const url = new URL(window.location.href);
+    url.searchParams.delete("search");
+    router.push(url.toString());
+  };
+
   return (
     <div className="flex flex-col min-h-[calc(100vh-64px)] bg-gray-50">
+
       <div className="h-16 shrink-0" />
       <main className="flex-1 overflow-y-auto p-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900">
-              <LayoutDashboard className="inline-block w-8 h-8 mr-2" color="var(--color-icon)"/>
+              <LayoutDashboard
+                className="inline-block w-8 h-8 mr-2"
+                color="var(--color-icon)"
+              />
               Dashboard de Livros
             </h1>
             <p className="text-gray-600">Gerencie sua biblioteca pessoal</p>
