@@ -4,7 +4,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import ImageWithFallback from "./components/ImageWithFallback";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,7 +41,7 @@ export default function RootLayout({
                   Início
                 </Link>
                 <Link
-                  href="/dashboard"
+                  href="/frontend/dashboard"
                   className="text-gray-600 hover:text-gray-900"
                 >
                   Dashboard
@@ -69,11 +68,6 @@ export default function RootLayout({
           draggable
           pauseOnHover
           theme="colored"
-        />
-        <ImageWithFallback
-          src="/user-profile.jpg"
-          fallbackSrc="/fallback.png"
-          alt="Foto do usuário"
         />
       </body>
     </html>

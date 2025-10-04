@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 interface ConfirmDeleteModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => Promise<void> | void; // pode ser assíncrono
+  onConfirm: () => Promise<void> | void;
   bookTitle?: string;
 }
 
@@ -16,7 +16,6 @@ export default function ConfirmDeleteModal({
 }: ConfirmDeleteModalProps) {
   const [loading, setLoading] = useState(false);
 
-  // Fecha modal com ESC
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape" && !loading) onClose();
@@ -31,7 +30,7 @@ export default function ConfirmDeleteModal({
     setLoading(true);
     try {
       await onConfirm();
-      onClose(); // fecha modal só depois do sucesso
+      onClose();
     } catch (err) {
       console.error(err);
     } finally {
@@ -47,8 +46,8 @@ export default function ConfirmDeleteModal({
         </h2>
         <p className="mt-2 text-sm text-gray-600">
           Tem certeza que deseja excluir{" "}
-          <span className="font-bold text-red-600">{bookTitle}</span>?
-          Essa ação não poderá ser desfeita.
+          <span className="font-bold text-red-600">{bookTitle}</span>? Essa ação
+          não poderá ser desfeita.
         </p>
 
         <div className="mt-6 flex justify-end gap-3">
@@ -65,9 +64,7 @@ export default function ConfirmDeleteModal({
             onClick={handleConfirm}
             disabled={loading}
             className={`px-4 py-2 rounded-lg text-white transition ${
-              loading
-                ? "bg-red-400 cursor-wait"
-                : "bg-red-600 hover:bg-red-700"
+              loading ? "bg-red-400 cursor-wait" : "bg-red-600 hover:bg-red-700"
             }`}
           >
             {loading ? "Excluindo..." : "Sim, excluir"}
