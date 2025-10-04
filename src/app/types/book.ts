@@ -1,12 +1,3 @@
-// Gera ID único usando crypto (nativo) ou fallback
-function generateId(): string {
-  if (typeof crypto !== 'undefined') {
-    return crypto.randomUUID();
-  }
-  // Fallback para ambientes sem crypto
-  return Date.now().toString() + Math.random().toString(36).substring(2);
-}
-
 export interface Book {
   id: string;
   titulo: string;
@@ -14,13 +5,9 @@ export interface Book {
   genero: string;
   anoPublicacao: number;
   paginas: number;
-  status: 'Lido' | 'Lendo' | 'Não Lido'; // ← AQUI ESTÁ DEFINIDO
-  avaliacao: number;
-  isbn?: string;
-  currentPage?: number;
-  notes?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  status: "Lido" | "Lendo" | "Quero Ler";
+  avaliacao?: number;
+  imagem?: string;
 }
 
 export function createBook(
@@ -29,25 +16,19 @@ export function createBook(
   genero: string,
   anoPublicacao: number,
   paginas: number,
-  status: 'Lido' | 'Lendo' | 'Não Lido' = 'Não Lido', // ← E AQUI
-  avaliacao: number = 0,
-  isbn?: string,
-  currentPage?: number,
-  notes?: string
+  status: "Lido" | "Lendo" | "Quero Ler",
+  avaliacao?: number,
+  imagem?: string
 ): Book {
   return {
-    id: generateId(),
+    id: Math.random().toString(36).substr(2, 9),
     titulo,
     autor,
     genero,
     anoPublicacao,
     paginas,
-    status, // ← USA O STATUS CORRETO
+    status,
     avaliacao,
-    isbn,
-    currentPage,
-    notes,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    imagem,
   };
 }

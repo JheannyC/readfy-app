@@ -1,7 +1,7 @@
 import { db } from "../lib/db";
 import { computeStats } from "../lib/metrics";
-import { StatCard } from "../components/dashboard/stat-card";
-import { QuickActions } from "../components/dashboard/quick-actions";
+import { StatCard } from "./Frontend/components/dashboard/stat-card";
+import { QuickActions } from "./Frontend/components/dashboard/quick-actions";
 
 export const dynamic = "force-dynamic";
 

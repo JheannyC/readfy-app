@@ -12,7 +12,8 @@ export async function POST(request: Request) {
       body.anoPublicacao,
       body.paginas,
       body.status,
-      body.avaliacao
+      body.avaliacao,
+      body.imagem 
     );
 
     const filePath = path.join(process.cwd(), "data", "books.json");
@@ -20,10 +21,7 @@ export async function POST(request: Request) {
     const data = await fs.readFile(filePath, "utf-8");
     const books: Book[] = JSON.parse(data);
 
-    books.push(newBook);
-
-    await fs.writeFile(filePath, JSON.stringify(books, null, 2));
-
+    // Validações antes de adicionar o livro
     if (newBook.titulo === "" || typeof newBook.titulo !== "string") {
       return Response.json(
         {
@@ -79,13 +77,29 @@ export async function POST(request: Request) {
       );
     }
 
+    // Validação opcional para imagem (pode ser string vazia ou URL)
+    if (newBook.imagem && typeof newBook.imagem !== "string") {
+      return Response.json(
+        {
+          error: "URL da imagem inválida.",
+          details: "Erro ao registrar livro. A URL da imagem deve ser uma string válida.",
+        },
+        { status: 400 }
+      );
+    }
+
+    books.push(newBook);
+
+    await fs.writeFile(filePath, JSON.stringify(books, null, 2));
+
     return Response.json({
       message: "Livro registrado com sucesso!",
       livro: newBook,
     });
   } catch (error: any) {
     return Response.json(
-      { error: "Não foi possível registrar o livro.", 
+      { 
+        error: "Não foi possível registrar o livro.", 
         details: "Revise os dados enviados no body da request. Algum campo pode não ter sido preenchido corretamente ou a formatação está incorreta."
       },
       { status: 500 }

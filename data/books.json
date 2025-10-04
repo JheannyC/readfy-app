@@ -1,92 +1,15 @@
 [
   {
-    "id": "4d8f6e30-5c7a-40fd-a2a6-aa7932cf2b36",
-    "titulo": "O Pequeno Príncipe",
-    "autor": "Antoine de Saint-Exupéry",
-    "genero": "Fábula",
-    "anoPublicacao": 1943,
-    "paginas": 365,
-    "status": "aberto",
-    "avaliacao": 5
-  },
-  {
-    "id": "54d5b923-711d-4acd-a07d-943c58b2d51d",
-    "titulo": "O Pequeno Príncipe",
-    "autor": "Antoine de Saint-Exupéry",
-    "genero": "Fábula",
-    "anoPublicacao": 1943,
-    "paginas": 365,
-    "status": "finalizado",
-    "avaliacao": 5
-  },
-  {
-    "id": "1789acbe-0b79-47db-a79d-9aa1e115c37a",
-    "titulo": "O Pequeno Príncipe",
-    "autor": "Antoine de Saint-Exupéry",
-    "genero": "Fábula",
-    "anoPublicacao": 1943,
-    "paginas": 365,
-    "status": "fechado",
-    "avaliacao": 0
-  },
-  {
-    "id": "8f52c0d5-187e-4649-8304-95891f231b6f",
-    "titulo": "O Pequeno Príncipe",
-    "autor": "Antoine de Saint-Exupéry",
-    "genero": "Fábula",
-    "anoPublicacao": 1943,
-    "paginas": 365,
-    "status": "fechado",
-    "avaliacao": 0
-  },
-  {
-    "id": "e14afb52-14d8-41ca-9bfa-956c105d3c9f",
-    "titulo": "O Pequeno Príncipe",
-    "autor": "Antoine de Saint-Exupéry",
-    "genero": "Fábula",
-    "anoPublicacao": 1943,
-    "paginas": 365,
-    "status": "finalizado",
-    "avaliacao": 0
-  },
-  {
-    "id": "25d27cc7-ff0c-4dff-97c4-068725f8b680",
-    "titulo": "Harry Potter",
-    "autor": "J.K.Rolling",
-    "genero": "Fantasia",
-    "anoPublicacao": 2018,
-    "paginas": 250,
-    "status": "fechado",
-    "avaliacao": 0
-  },
-  {
-    "id": "029bd0f4-7748-4ea3-bd7c-3d169267b5b1",
+    "id": "80c9c964-ce31-4cbb-88f0-d53ac577f005",
     "titulo": "Dom Casmurro",
-    "autor": "MAchado de Asssis",
+    "autor": "MAchado de Assis",
     "genero": "Romance",
     "anoPublicacao": 1999,
     "paginas": 256,
-    "status": "fechado",
-    "avaliacao": 0
-  },
-  {
-    "id": "c61e0cf5-17f4-4a34-8009-1299e1e49f3c",
-    "titulo": "1989",
-    "autor": "George gadwell",
-    "genero": "institucional",
-    "anoPublicacao": 2002,
-    "paginas": 370,
-    "status": "fechado",
-    "avaliacao": 0
-  },
-  {
-    "id": "5ddb0721-89dd-4be9-a547-bbfeb24a650d",
-    "titulo": "Dom casmuro",
-    "autor": "Machado de Assis",
-    "genero": "Romance",
-    "anoPublicacao": 1999,
-    "paginas": 256,
-    "status": "fechado",
-    "avaliacao": 0
+    "status": "Quero Ler",
+    "avaliacao": 3,
+    "createdAt": "2025-10-04T14:30:28.485Z",
+    "updatedAt": "2025-10-04T14:30:28.485Z",
+    "imagem": "https://m.media-amazon.com/images/I/61x1ZHomWUL._SL1200_.jpg"
   }
 ]
