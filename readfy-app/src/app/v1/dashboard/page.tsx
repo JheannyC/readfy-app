@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Book } from "@/app/types/book";
 import { DashboardResponse } from "@/app/types/dashboard";
 import { toast } from "react-toastify";
-import { ArrowRight, LayoutDashboard } from "lucide-react";
+import { ArrowRight, LayoutDashboard, RefreshCw } from "lucide-react";
 import SkeletonStat from "../components/SkeletonStat";
 
 export default function Dashboard() {
@@ -14,9 +14,7 @@ export default function Dashboard() {
   const [books, setBooks] = useState<Book[]>([]);
   const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(
-    null
-  );
+  const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(null);
   const [loadingBooks, setLoadingBooks] = useState(true);
   const [loadingDashboard, setLoadingDashboard] = useState(true);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
@@ -36,6 +34,7 @@ export default function Dashboard() {
     } catch (err) {
       console.error("Erro fetchDashboard:", err);
       setDashboardError(String(err));
+      toast.error("Erro ao carregar estatísticas");
     } finally {
       setLoadingDashboard(false);
     }
@@ -68,22 +67,6 @@ export default function Dashboard() {
     loadBooks();
   }, []);
 
-  useEffect(() => {
-    const lower = searchTerm.trim().toLowerCase();
-    if (!lower) {
-      setFilteredBooks(books);
-      return;
-    }
-    setFilteredBooks(
-      books.filter(
-        (b) =>
-          b.title.toLowerCase().includes(lower) ||
-          b.author.toLowerCase().includes(lower) ||
-          b.genre.toLowerCase().includes(lower)
-      )
-    );
-  }, [searchTerm, books]);
-
   const clearSearch = () => {
     setSearchTerm("");
     const url = new URL(window.location.href);
@@ -91,74 +74,107 @@ export default function Dashboard() {
     router.push(url.toString());
   };
 
-  return (
-    <div className="flex flex-col min-h-[calc(100vh-64px)] bg-gray-50">
+  const handleReload = () => {
+    setDashboardError(null);
+    loadDashboard();
+  };
 
+  return (
+    <div className="flex flex-col min-h-[calc(100vh-64px)] bg-background transition-colors duration-300">
       <div className="h-16 shrink-0" />
       <main className="flex-1 overflow-y-auto p-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">
-              <LayoutDashboard
-                className="inline-block w-8 h-8 mr-2"
-                color="var(--color-icon)"
-              />
-              Dashboard de Livros
-            </h1>
-            <p className="text-gray-600">Gerencie sua biblioteca pessoal</p>
+          <div className="mb-8 flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <h1 className="text-3xl font-bold text-foreground">
+                <LayoutDashboard
+                  className="inline-block w-8 h-8 mr-2"
+                />
+                Dashboard de Livros
+              </h1>
+              <button
+                onClick={handleReload}
+                className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+                title="Recarregar"
+              >
+                <RefreshCw className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-muted-foreground">Gerencie sua biblioteca pessoal</p>
           </div>
+
+          {/* Mensagem de erro */}
+          {dashboardError && (
+            <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-destructive">Erro ao carregar estatísticas</h3>
+                  <p className="text-sm text-muted-foreground mt-1">{dashboardError}</p>
+                </div>
+                <button
+                  onClick={handleReload}
+                  className="bg-destructive text-destructive-foreground px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
+                >
+                  Tentar Novamente
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Estatísticas */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             {loadingDashboard || !dashboardData ? (
               Array.from({ length: 5 }).map((_, i) => <SkeletonStat key={i} />)
             ) : (
               <>
-                <div className="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
-                  <div className="text-2xl font-bold text-gray-900">
+                <div className="bg-card p-4 rounded-lg shadow-sm border border-border transition-all hover:shadow-md">
+                  <div className="text-2xl font-bold text-foreground">
                     {dashboardData.totalLivrosRegistrados ?? 0}
                   </div>
-                  <div className="text-sm text-gray-600">Total de livros</div>
+                  <div className="text-sm text-muted-foreground">Total de livros</div>
                 </div>
-                <div className="bg-white p-4 rounded-lg shadow border-l-4 border-gray-500">
-                  <div className="text-2xl font-bold text-gray-900">
+                <div className="bg-card p-4 rounded-lg shadow-sm border border-border transition-all hover:shadow-md">
+                  <div className="text-2xl font-bold text-foreground">
                     {dashboardData.livrosNaoIniciados ?? 0}
                   </div>
-                  <div className="text-sm text-gray-600">Não iniciados</div>
+                  <div className="text-sm text-muted-foreground">Não iniciados</div>
                 </div>
-                <div className="bg-white p-4 rounded-lg shadow border-l-4 border-yellow-500">
-                  <div className="text-2xl font-bold text-gray-900">
+                <div className="bg-card p-4 rounded-lg shadow-sm border border-border transition-all hover:shadow-md">
+                  <div className="text-2xl font-bold text-foreground">
                     {dashboardData.livrosAbertos ?? 0}
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-muted-foreground">
                     Leitura em andamento
                   </div>
                 </div>
-                <div className="bg-white p-4 rounded-lg shadow border-l-4 border-green-500">
-                  <div className="text-2xl font-bold text-gray-900">
+                <div className="bg-card p-4 rounded-lg shadow-sm border border-border transition-all hover:shadow-md">
+                  <div className="text-2xl font-bold text-foreground">
                     {dashboardData.livrosFinalizados ?? 0}
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-muted-foreground">
                     Leitura finalizada
                   </div>
                 </div>
-                <div className="bg-white p-4 rounded-lg shadow border-l-4 border-blue-950">
-                  <div className="text-2xl font-bold text-gray-900">
+                <div className="bg-card p-4 rounded-lg shadow-sm border border-border transition-all hover:shadow-md">
+                  <div className="text-2xl font-bold text-foreground">
                     {dashboardData.totalPaginasLidas ?? 0}
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-muted-foreground">
                     Total de páginas lidas
                   </div>
                 </div>
               </>
             )}
           </div>
+
+          {/* Botão para livros */}
           <button
             onClick={() => router.push("/v1/books")}
-            className="flex items-center gap-2 bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all cursor-pointer"
+            className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:opacity-90 transition-all cursor-pointer shadow-sm"
           >
             Livros Cadastrados
-            <ArrowRight size={18} className="text-white" />
+            <ArrowRight size={18} />
           </button>
         </div>
       </main>
