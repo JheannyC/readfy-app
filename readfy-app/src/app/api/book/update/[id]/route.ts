@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { StatusEnum } from "@prisma/client";
+import { StatusEnum, Prisma } from "@prisma/client";
 
 interface Params {
   id: string;
@@ -20,7 +20,7 @@ interface BookBody {
   imgURL?: string;
 }
 
-// 🔹 Validações
+// Validação de string
 function validateString(value: string | undefined, fieldName: string) {
   if (value !== undefined && (typeof value !== "string" || !value.trim())) {
     return `${fieldName} inválido.`;
@@ -28,6 +28,7 @@ function validateString(value: string | undefined, fieldName: string) {
   return null;
 }
 
+// Validação de número
 function validateNumber(
   value: number | undefined,
   fieldName: string,
@@ -43,7 +44,7 @@ function validateNumber(
   return null;
 }
 
-// 🔹 Cria ou retorna Status
+// Cria ou retorna Status
 async function getOrCreateStatus(status: string) {
   const normalized = status.trim();
   const allowed = Object.values(StatusEnum);
@@ -61,7 +62,7 @@ async function getOrCreateStatus(status: string) {
   return statusExistente;
 }
 
-// 🔹 Cria ou retorna Genre
+// Cria ou retorna Genre
 async function getOrCreateGenre(genre: string) {
   const normalized = genre.toLowerCase().trim();
   let genreExistente = await prisma.genre.findUnique({
@@ -86,7 +87,6 @@ export async function PUT(
       return NextResponse.json({ error: "ID inválido." }, { status: 400 });
     }
 
-    // 🔹 Parse seguro do JSON
     let body: BookBody;
     try {
       body = (await request.json()) as BookBody;
@@ -111,7 +111,7 @@ export async function PUT(
       imgURL,
     } = body;
 
-    // 🔹 Validações individuais
+    // Validações individuais
     const errors = [
       validateString(title, "Título"),
       validateString(author, "Autor"),
@@ -129,14 +129,14 @@ export async function PUT(
       return NextResponse.json({ error: errors.join(" ") }, { status: 400 });
     }
 
-    // 🔹 Verifica se livro existe
+    // Verifica se livro existe
     const livroExistente = await prisma.book.findUnique({ where: { id } });
     if (!livroExistente) {
       return NextResponse.json({ error: "Livro não encontrado." }, { status: 404 });
     }
 
-    // 🔹 Relacionamentos
-    const relationalData: any = {};
+    // Relacionamentos
+    const relationalData: Prisma.BookUpdateInput = {};
     if (status) {
       const statusExistente = await getOrCreateStatus(status.toString());
       relationalData.status = { connect: { id: statusExistente.id } };
@@ -146,8 +146,8 @@ export async function PUT(
       relationalData.genre = { connect: { id: genreExistente.id } };
     }
 
-    // 🔹 Campos diretos
-    const updateData: any = {};
+    // Campos diretos
+    const updateData: Prisma.BookUpdateInput = {};
     if (title !== undefined) updateData.title = title.trim();
     if (author !== undefined) updateData.author = author.trim();
     if (publicationYear !== undefined) updateData.publicationYear = publicationYear;

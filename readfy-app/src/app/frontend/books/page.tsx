@@ -94,13 +94,13 @@ export default function Dashboard() {
       <div className="h-16 shrink-0" />
 
       <main className="flex-1 overflow-y-auto p-6">
-                  <Link
-            href="/frontend/dashboard"
-            className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
-          >
-            <ArrowLeft className="inline-block w-5 h-5 mr-2" /> Voltar para
-            Dashboard
-          </Link>
+        <Link
+          href="/frontend/dashboard"
+          className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
+        >
+          <ArrowLeft className="inline-block w-5 h-5 mr-2" /> Voltar para
+          Dashboard
+        </Link>
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8 flex justify-between items-center">
@@ -108,12 +108,6 @@ export default function Dashboard() {
               <LibraryBig className="w-8 h-8 mr-2 text-blue-600" />
               Livros Cadastrados
             </h1>
-            {/* <button
-              onClick={() => router.push("/frontend/dashboard")}
-              className="text-sm text-blue-600 hover:underline"
-            >
-              Voltar
-            </button> */}
           </div>
 
           {/* === Se não há livros cadastrados === */}
@@ -124,7 +118,8 @@ export default function Dashboard() {
                 Nenhum livro na biblioteca
               </h3>
               <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                Comece adicionando seu primeiro livro para organizar sua leitura.
+                Comece adicionando seu primeiro livro para organizar sua
+                leitura.
               </p>
               <button
                 onClick={() => router.push("/frontend/book/register")}
@@ -179,7 +174,7 @@ export default function Dashboard() {
                       key={book.id}
                       className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 p-6 flex flex-col cursor-pointer group"
                       onClick={() =>
-                        router.push(`/frontend/book/update/${book.id}`)
+                        router.push(`/frontend/book/${book.id}`)
                       }
                     >
                       {/* Capa */}
@@ -263,7 +258,7 @@ export default function Dashboard() {
                             e.stopPropagation();
                             router.push(`/frontend/book/update/${book.id}`);
                           }}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-3 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                           title="Editar livro"
                         >
                           <SquarePen className="w-5 h-5" />
@@ -292,7 +287,7 @@ export default function Dashboard() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            router.push(`/frontend/book/update/${book.id}`);
+                            router.push(`/frontend/book/${book.id}`);
                           }}
                           className="w-full flex items-center justify-center gap-2 text-blue-600 font-medium hover:underline transition-colors"
                         >
