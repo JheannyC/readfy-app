@@ -12,6 +12,7 @@ interface FormFieldProps {
   max?: string | number;
   placeholder?: string;
   maxLength?: number;
+  required?: boolean;
 }
 
 export default function FormField({
@@ -25,6 +26,7 @@ export default function FormField({
   max,
   placeholder,
   maxLength,
+  required = false,
 }: FormFieldProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let val = e.target.value;
@@ -38,7 +40,7 @@ export default function FormField({
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-2">
-        {label}
+        {label} {required && <span className="text-red-500">*</span>}
       </label>
       <input
         type={type}
@@ -53,7 +55,9 @@ export default function FormField({
         }`}
       />
       {errors[fieldName] && (
-        <p className="text-red-500 text-sm mt-1">{errors[fieldName]}</p>
+        <p className="text-red-500 mt-1" style={{ fontSize: "12px" }}>
+          {errors[fieldName]}
+        </p>
       )}
     </div>
   );

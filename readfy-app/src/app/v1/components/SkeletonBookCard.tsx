@@ -1,7 +1,9 @@
 export default function SkeletonBookCard() {
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8 flex justify-center">
-      <div className="max-w-4xl w-full">
+    <div className="flex flex-col min-h-[calc(100vh-64px)] bg-gray-50">
+      <div className="h-16 shrink-0" />
+      <main className="flex-1 overflow-y-auto p-6">
+        <div className="max-w-7xl mx-auto">
         <div className="bg-white rounded-lg shadow-md flex flex-col md:flex-row p-6 animate-pulse">
           {/* Capa do livro */}
           <div className="w-full md:w-1/3 bg-gray-200 rounded-t-md md:rounded-l-md min-h-[350px] flex-shrink-0" />
@@ -35,8 +37,10 @@ export default function SkeletonBookCard() {
               <div className="h-10 w-10 bg-gray-200 rounded-lg"></div>
             </div>
           </div>
-        </div>
-      </div>
+          </div>
+          </div>
+      </main>
     </div>
+
   );
 }

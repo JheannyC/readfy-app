@@ -3,7 +3,13 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import {
+  ArrowLeft,
+  Image,
+  Plus,
+  UploadCloud,
+  X,
+} from "lucide-react";
 import { toast } from "react-toastify";
 import { StatusEnum } from "@prisma/client";
 import FormField from "../../components/FormField";
@@ -54,7 +60,7 @@ export default function RegisterBook() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const validateFieldSync = (field: keyof BookFormData, value: string): string | null => {
+  const validateFieldSync = (field: keyof BookFormData, value: string) => {
     const currentYear = new Date().getFullYear();
     switch (field) {
       case "titulo":
@@ -67,7 +73,7 @@ export default function RegisterBook() {
         break;
       case "autor":
         if (value.trim().length < 2 || value.trim().length > 150)
-          return "Nome do autor deve ter entre 2 e 150 caracteres.";
+          return "O autor deve ter entre 2 e 150 caracteres.";
         break;
       case "isbn":
         if (value.length > 14) value = value.slice(0, 14);
@@ -83,20 +89,32 @@ export default function RegisterBook() {
       case "paginas":
         if (value.length > 6) value = value.slice(0, 6);
         const pages = Number(value);
-        if (!value || isNaN(pages) || pages < 0)
-          return "Número de páginas deve ser maior ou igual a 0.";
+        if (value.trim() === "" || isNaN(pages) || pages < 0)
+          return "Páginas deve ser maior ou igual a 0.";
         break;
       case "currentPage":
         const currentPage = Number(value);
         const totalPages = Number(formData.paginas);
-        if (!value || isNaN(currentPage) || currentPage <= 0)
+        if (value.trim() === "" || isNaN(currentPage) || currentPage < 0)
           return "Página atual deve ser maior que 0.";
         if (totalPages && currentPage > totalPages)
-          return "Página atual não pode ser maior que o número de páginas.";
+          return "Não pode ser maior que o número de páginas.";
         break;
       case "notes":
         if (value.length > 250)
           return "Notas e observações podem ter no máximo 250 caracteres.";
+        break;
+      case "imagemUrl":
+        if (value.trim() !== "") {
+          try {
+            new URL(value);
+            const isImage = /\.(jpeg|jpg|png|gif|webp|avif)$/i.test(value);
+            if (!isImage)
+              return "A URL deve apontar para uma imagem (.jpg, .png, .gif, .webp, .avif).";
+          } catch {
+            return "Informe uma URL válida (ex: https://exemplo.com/imagem.jpg)";
+          }
+        }
         break;
       default:
         return null;
@@ -107,11 +125,17 @@ export default function RegisterBook() {
   const handleInputChange = <K extends keyof BookFormData>(field: K, value: string) => {
     if (field === "isbn") {
       value = value.replace(/[^\d]/g, "");
-      if (value.length > 3 && value.length <= 13) value = value.slice(0, 3) + "-" + value.slice(3);
-      else if (value.length > 13) value = value.slice(0, 3) + "-" + value.slice(3, 13);
+      if (value.length > 3 && value.length <= 13)
+        value = value.slice(0, 3) + "-" + value.slice(3);
+      else if (value.length > 13)
+        value = value.slice(0, 3) + "-" + value.slice(3, 13);
     }
     if (["anoPublicacao", "paginas", "currentPage"].includes(field)) {
-      const maxLengthMap: Record<string, number> = { anoPublicacao: 4, paginas: 6, currentPage: 6 };
+      const maxLengthMap: Record<string, number> = {
+        anoPublicacao: 4,
+        paginas: 6,
+        currentPage: 6,
+      };
       value = value.slice(0, maxLengthMap[field]);
     }
     if (field === "notes") value = value.slice(0, 250);
@@ -123,14 +147,18 @@ export default function RegisterBook() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+
     const newErrors: FieldError = {};
     (Object.keys(formData) as (keyof BookFormData)[]).forEach((field) => {
       const error = validateFieldSync(field, formData[field] as string);
       if (error) newErrors[field] = error;
     });
     setErrors(newErrors);
+    setLoading(false);
+
     if (Object.keys(newErrors).length > 0) {
-      toast.error("Corrija os erros antes de enviar.");
+      toast.error("Verifique os campos.");
       return;
     }
 
@@ -168,94 +196,265 @@ export default function RegisterBook() {
     }
   };
 
+  const LoadingOverlay = () => (
+    <div className="fixed inset-0 bg-background/70 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="flex flex-col items-center space-y-3">
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-primary font-medium">Salvando Livro...</p>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-background py-8">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <Link href="/v1/dashboard" className="inline-flex items-center text-primary hover:text-primary/80 mb-4">
-            <ArrowLeft className="inline-block w-5 h-5 mr-2" /> Voltar para Dashboard
-          </Link>
-          <h1 className="text-3xl font-bold text-foreground">Cadastrar Novo Livro</h1>
-          <p className="text-muted-foreground mt-2">Preencha as informações do livro para adicionar à sua biblioteca</p>
-        </div>
-        <form onSubmit={handleSubmit} className="bg-card shadow-sm border border-border rounded-lg p-6">
-          <div className="border-b border-border pb-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4">Capa do Livro</h2>
-            {previewUrl && (
-              <div className="mb-4">
-                <div className="relative inline-block">
-                  <img src={previewUrl} alt="Preview" className="w-32 h-48 object-cover rounded-lg shadow-md border border-border" />
-                  <button type="button" onClick={removeImage} className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-destructive/90">
-                    ✕
-                  </button>
+    <div className="flex flex-col min-h-[calc(100vh-64px)] bg-background text-foreground">
+      <div className="h-16 shrink-0" />
+      <main className="flex-1 overflow-y-auto p-6">
+        {loading && <LoadingOverlay />}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-8">
+            <Link
+              href="/v1/dashboard"
+              className="inline-flex items-center text-primary hover:text-primary/80 mb-4 font-medium transition-colors"
+            >
+              <ArrowLeft className="inline-block w-5 h-5 mr-2" /> Voltar
+            </Link>
+            <h1 className="text-4xl font-bold flex items-center gap-2 text-foreground">
+              <Plus className="w-8 h-8" />
+              Cadastrar novo livro
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              Preencha as informações do livro para adicionar à sua biblioteca
+            </p>
+          </div>
+
+          <form
+            onSubmit={handleSubmit}
+            className={`bg-card shadow rounded-lg p-6 space-y-6 ${
+              loading ? "opacity-70 pointer-events-none" : ""
+            }`}
+          >
+            {/* Capa do Livro */}
+            <div className="border-b border-border pb-6">
+              <h2 className="text-lg font-semibold mb-4">Capa do livro</h2>
+              <div className="flex flex-col md:flex-row gap-8 items-start">
+                <div className="w-40 h-48 flex-shrink-0 border rounded-lg overflow-hidden bg-muted relative flex items-center justify-center">
+                  {formData.imagemFile || formData.imagemUrl ? (
+                    <>
+                      <img
+                        src={previewUrl || formData.imagemUrl}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={removeImage}
+                        className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs hover:brightness-90 z-10"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </>
+                  ) : (
+                    <span className="flex flex-col items-center justify-center text-muted-foreground text-sm px-2 h-full text-center">
+                      <Image className="w-6 h-6 mb-1" />
+                      Sem imagem
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex-1 flex flex-col gap-4">
+                  <label className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg cursor-pointer font-medium w-max hover:brightness-90 transition-all">
+                    <UploadCloud className="w-4 h-4" />
+                    Escolher arquivo
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                  </label>
+
+                  <span className="text-xs text-muted-foreground">
+                    Formatos: JPG, JPEG, PNG. Tamanho máximo: 5MB
+                  </span>
+
+                  <input
+                    type="text"
+                    value={formData.imagemUrl}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setFormData((prev) => ({
+                        ...prev,
+                        imagemUrl: value,
+                        imagemFile: null,
+                      }));
+                      setPreviewUrl("");
+                      const error = validateFieldSync("imagemUrl", value);
+                      setErrors((prev) => ({ ...prev, imagemUrl: error || undefined }));
+                    }}
+                    placeholder="Ou cole a URL da imagem"
+                    disabled={!!formData.imagemFile}
+                    className={`w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 ${
+                      formData.imagemFile
+                        ? "bg-muted cursor-not-allowed border-border"
+                        : errors.imagemUrl
+                        ? "border-destructive focus:ring-destructive"
+                        : "border-border focus:ring-primary"
+                    }`}
+                  />
+                  {errors.imagemUrl && (
+                    <p className="text-destructive text-sm mt-1">{errors.imagemUrl}</p>
+                  )}
                 </div>
               </div>
-            )}
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Upload da Imagem</label>
-              <input 
-                ref={fileInputRef} 
-                type="file" 
-                accept="image/*" 
-                onChange={handleImageUpload} 
-                className="w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90" 
-              />
-              <p className="text-xs text-muted-foreground mt-1">Formatos: JPG, PNG, GIF (máx 5MB)</p>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-border pb-6">
-            <FormField label="Título *" type="text" value={formData.titulo} onChange={(v) => handleInputChange("titulo", v)} placeholder="Ex: Dom Casmurro" fieldName="titulo" errors={errors} maxLength={100} />
-            <FormField label="Autor *" type="text" value={formData.autor} onChange={(v) => handleInputChange("autor", v)} fieldName="autor" errors={errors} maxLength={150} placeholder="Ex: Machado de Assis" />
-            <FormField label="Gênero *" type="text" value={formData.genero} onChange={(v) => handleInputChange("genero", v)} fieldName="genero" errors={errors} maxLength={100} placeholder="Ex: Ficção" />
-            <FormField label="ISBN" type="text" value={formData.isbn} onChange={(v) => handleInputChange("isbn", v)} fieldName="isbn" errors={errors} maxLength={17} placeholder="Ex: 978-3-16-148410-0" />
-          </div>
+            {/* Campos do formulário */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-border pb-6">
+              <FormField
+                label="Título do livro"
+                type="text"
+                value={formData.titulo}
+                onChange={(v) => handleInputChange("titulo", v)}
+                placeholder="Ex: Dom Casmurro"
+                fieldName="titulo"
+                errors={errors}
+                maxLength={100}
+                required
+              />
+              <FormField
+                label="Nome do autor"
+                type="text"
+                value={formData.autor}
+                onChange={(v) => handleInputChange("autor", v)}
+                fieldName="autor"
+                errors={errors}
+                maxLength={150}
+                placeholder="Ex: Machado de Assis"
+                required
+              />
+              <FormField
+                label="Gênero"
+                type="text"
+                value={formData.genero}
+                onChange={(v) => handleInputChange("genero", v)}
+                fieldName="genero"
+                errors={errors}
+                maxLength={50}
+                placeholder="Ex: Ficção"
+                required
+              />
+              <FormField
+                label="ISBN"
+                type="text"
+                value={formData.isbn}
+                onChange={(v) => handleInputChange("isbn", v)}
+                fieldName="isbn"
+                errors={errors}
+                maxLength={17}
+                placeholder="Ex: 978-3161484100"
+              />
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-border pb-6">
-            <FormField label="Ano de Publicação *" type="number" value={formData.anoPublicacao} onChange={(v) => handleInputChange("anoPublicacao", v)} fieldName="anoPublicacao" errors={errors} min={1} max={new Date().getFullYear()} placeholder="Ex: 1899" />
-            <FormField label="Número de Páginas *" type="number" value={formData.paginas} onChange={(v) => handleInputChange("paginas", v)} fieldName="paginas" errors={errors} placeholder="Ex: 200" />
-          </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-border pb-6">
+              <FormField
+                label="Ano de publicação"
+                type="number"
+                value={formData.anoPublicacao}
+                onChange={(v) => handleInputChange("anoPublicacao", v)}
+                fieldName="anoPublicacao"
+                errors={errors}
+                min={1}
+                max={new Date().getFullYear()}
+                placeholder="Ex: 1899"
+                required
+              />
+              <FormField
+                label="Número de páginas"
+                type="number"
+                value={formData.paginas}
+                onChange={(v) => handleInputChange("paginas", v)}
+                fieldName="paginas"
+                errors={errors}
+                placeholder="Ex: 200"
+              />
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-border pb-6">
-            <SelectField label="Status *" value={formData.status} onChange={(v) => handleInputChange("status", v)} fieldName="status" errors={errors} options={[
-              { value: StatusEnum.Fechado, label: "Não lido" },
-              { value: StatusEnum.Aberto, label: "Lendo" },
-              { value: StatusEnum.Finalizado, label: "Finalizado" },
-            ]} />
-            <SelectField label="Avaliação" value={formData.avaliacao} onChange={(v) => handleInputChange("avaliacao", v)} fieldName="avaliacao" errors={errors} options={[
-              { value: "0", label: "Sem avaliação" },
-              { value: "1", label: "⭐" },
-              { value: "2", label: "⭐⭐" },
-              { value: "3", label: "⭐⭐⭐" },
-              { value: "4", label: "⭐⭐⭐⭐" },
-              { value: "5", label: "⭐⭐⭐⭐⭐" },
-            ]} />
-          </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-border pb-6">
+              <SelectField
+                label="Status *"
+                value={formData.status}
+                onChange={(v) => handleInputChange("status", v)}
+                fieldName="status"
+                errors={errors}
+                options={[
+                  { value: StatusEnum.Fechado, label: "Não lido" },
+                  { value: StatusEnum.Aberto, label: "Lendo" },
+                  { value: StatusEnum.Finalizado, label: "Finalizado" },
+                ]}
+              />
+              <SelectField
+                label="Avaliação"
+                value={formData.avaliacao}
+                onChange={(v) => handleInputChange("avaliacao", v)}
+                fieldName="avaliacao"
+                errors={errors}
+                options={[
+                  { value: "0", label: "Sem avaliação" },
+                  { value: "1", label: "⭐" },
+                  { value: "2", label: "⭐⭐" },
+                  { value: "3", label: "⭐⭐⭐" },
+                  { value: "4", label: "⭐⭐⭐⭐" },
+                  { value: "5", label: "⭐⭐⭐⭐⭐" },
+                ]}
+              />
+            </div>
 
-          <FormField label="Página Atual" type="number" value={formData.currentPage} onChange={(v) => handleInputChange("currentPage", v)} fieldName="currentPage" placeholder="Ex: 50" errors={errors} />
-
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Notas e Observações</label>
-            <textarea 
-              value={formData.notes} 
-              placeholder="Adicione notas sobre o livro..." 
-              onChange={(e) => handleInputChange("notes", e.target.value)} 
-              rows={4} 
-              className={`w-full bg-background border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:border-transparent resize-none text-foreground placeholder:text-muted-foreground ${
-                errors.notes ? "border-destructive focus:ring-destructive" : "border-input focus:ring-primary"
-              }`} 
+            <FormField
+              label="Página atual (página lida atualmente):"
+              type="number"
+              value={formData.currentPage}
+              onChange={(v) => handleInputChange("currentPage", v)}
+              fieldName="currentPage"
+              placeholder="Ex: 50"
+              errors={errors}
             />
-            {errors.notes && <p className="text-destructive text-sm mt-1">{errors.notes}</p>}
-          </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-border">
-            <Link href="/v1/dashboard" className="flex-1 bg-muted text-muted-foreground text-center py-3 rounded-lg hover:bg-muted/80 transition-colors font-medium">Cancelar</Link>
-            <button type="submit" disabled={loading} className="flex-1 bg-primary text-primary-foreground py-3 rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed">
-              {loading ? "Cadastrando..." : "Cadastrar Livro"}
-            </button>
-          </div>
-        </form>
-      </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Notas e Observações</label>
+              <textarea
+                value={formData.notes}
+                placeholder="Adicione notas sobre o livro..."
+                onChange={(e) => handleInputChange("notes", e.target.value)}
+                rows={4}
+                className={`w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:border-transparent resize-none ${
+                  errors.notes ? "border-destructive focus:ring-destructive" : "border-border focus:ring-primary"
+                }`}
+              />
+              {errors.notes && (
+                <p className="text-destructive text-sm mt-1">{errors.notes}</p>
+              )}
+            </div>
+
+            {/* Botões */}
+            <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-border">
+              <Link
+                href="/v1/dashboard"
+                className="flex-1 bg-muted text-muted-foreground text-center py-3 rounded-lg hover:brightness-90 transition-all font-medium"
+              >
+                Cancelar
+              </Link>
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex-1 bg-primary text-primary-foreground py-3 rounded-lg hover:brightness-90 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? "Cadastrando..." : "Cadastrar Livro"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </main>
     </div>
   );
 }

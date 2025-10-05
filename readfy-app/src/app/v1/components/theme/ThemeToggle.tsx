@@ -14,49 +14,60 @@ import { Button } from "../ui/button";
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  
+
   useEffect(() => setMounted(true), []);
 
   if (!mounted) {
-    // Renderiza um placeholder neutro enquanto hidrata
+    // Placeholder neutro enquanto hidrata
     return (
       <Button
         variant="ghost"
-        size="icon"
+        size="sm"
         aria-label="Alternar tema"
-        className="rounded-2xl theme-toggle transition-all duration-300"
+        className="rounded-2xl flex items-center gap-2 px-3"
       >
-        <Sun className="size-4" />
+        <Sun className="w-5 h-5 text-foreground" />
+      
       </Button>
     );
   }
 
+  // Ícone de acordo com o tema atual
   const icon =
-    theme === "dark" ? <Moon className="size-4" /> :
-    theme === "light" ? <Sun className="size-4" /> :
-    <BookOpen className="size-4" />;
+    theme === "dark" ? <Moon className="w-5 h-5 text-foreground" /> :
+    theme === "light" ? <Sun className="w-5 h-5 text-foreground" /> :
+    <BookOpen className="w-5 h-5 text-foreground" />;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          size="icon"
+          size="sm"
           aria-label="Alternar tema"
-          className="rounded-2xl theme-toggle transition-all duration-300 hover:scale-110"
+          className="rounded-2xl flex items-center gap-2 px-3 hover:scale-105 transition-transform duration-300"
         >
           {icon}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuItem onClick={() => setTheme("light")} className="gap-2 cursor-pointer transition-colors">
-          <Sun className="size-4 text-yellow-500" /> <span>Tema Claro</span>
+        <DropdownMenuItem
+          onClick={() => setTheme("light")}
+          className="gap-2 cursor-pointer transition-colors"
+        >
+          <Sun className="w-5 h-5 text-yellow-500" /> <span>Claro</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")} className="gap-2 cursor-pointer transition-colors">
-          <Moon className="size-4 text-blue-400" /> <span>Tema Escuro</span>
+        <DropdownMenuItem
+          onClick={() => setTheme("dark")}
+          className="gap-2 cursor-pointer transition-colors"
+        >
+          <Moon className="w-5 h-5 text-blue-400" /> <span>Escuro</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("book")} className="gap-2 cursor-pointer transition-colors">
-          <BookOpen className="size-4 text-amber-600" /> <span>Modo Livro</span>
+        <DropdownMenuItem
+          onClick={() => setTheme("book")}
+          className="gap-2 cursor-pointer transition-colors"
+        >
+          <BookOpen className="w-5 h-5 text-amber-600" /> <span>Livro</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
