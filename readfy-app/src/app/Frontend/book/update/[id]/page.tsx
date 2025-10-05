@@ -9,8 +9,8 @@ import { StatusEnum } from "@prisma/client";
 import "react-toastify/dist/ReactToastify.css";
 import { BookFormData, FieldError } from "@/app/types/error";
 
-import SelectField from "@/app/frontend/components/SelectField";
-import FormField from "@/app/frontend/components/FormField";
+import SelectField from "../../../components/SelectField";
+import FormField from "../../../components/FormField";
 
 export default function EditBookPage() {
   const router = useRouter();
