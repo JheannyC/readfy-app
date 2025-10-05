@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 
 interface StarRatingProps {
   bookId: number;
   initialRating?: number;
-  onUpdate?: (newRating: number) => void; // Callback para atualizar estado local
+  onUpdate?: (newRating: number) => void; // Callback para atualizar estado local do dashboard
 }
 
 export default function StarRating({
@@ -22,9 +23,11 @@ export default function StarRating({
   }, [initialRating]);
 
   const handleClick = async (newRating: number) => {
-    if (saving) return;
     const previousRating = rating;
-    setRating(newRating);
+    setRating(newRating); // Atualiza imediatamente no front
+    if (onUpdate) onUpdate(newRating); // Atualiza estado no dashboard também
+
+    if (saving) return;
     setSaving(true);
 
     try {
@@ -42,12 +45,12 @@ export default function StarRating({
       const result = await res.json();
       const updatedRating = result.livro?.rating ?? previousRating;
       setRating(updatedRating);
-
-      // Atualiza estado local do Dashboard
       if (onUpdate) onUpdate(updatedRating);
     } catch (err) {
       console.error("Erro ao salvar rating:", err);
+      toast.error("Erro ao salvar avaliação. Tente novamente.");
       setRating(previousRating);
+      if (onUpdate) onUpdate(previousRating);
     } finally {
       setSaving(false);
     }
@@ -59,11 +62,15 @@ export default function StarRating({
         <button
           key={star}
           type="button"
-          onClick={() => handleClick(star)}
+          onClick={(e) => {
+            e.stopPropagation(); // impede que o clique abra o card
+            handleClick(star);
+          }}
           onMouseEnter={() => setHover(star)}
           onMouseLeave={() => setHover(0)}
           className="focus:outline-none transition-transform duration-150"
           disabled={saving}
+          title={`${star} estrela${star > 1 ? "s" : ""}`}
         >
           <svg
             className={`w-6 h-6 cursor-pointer transition-colors duration-150 ${

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Book } from "@/app/types/book";
 import { DashboardResponse } from "@/app/types/dashboard";
 import { toast } from "react-toastify";
-import { ArrowRight, LayoutDashboard, RefreshCw } from "lucide-react";
+import { BookCheck, LayoutDashboard, RefreshCw, Plus } from "lucide-react";
 import SkeletonStat from "../components/SkeletonStat";
 
 export default function Dashboard() {
@@ -14,7 +14,9 @@ export default function Dashboard() {
   const [books, setBooks] = useState<Book[]>([]);
   const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(
+    null
+  );
   const [loadingBooks, setLoadingBooks] = useState(true);
   const [loadingDashboard, setLoadingDashboard] = useState(true);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
@@ -34,7 +36,6 @@ export default function Dashboard() {
     } catch (err) {
       console.error("Erro fetchDashboard:", err);
       setDashboardError(String(err));
-      toast.error("Erro ao carregar estatísticas");
     } finally {
       setLoadingDashboard(false);
     }
@@ -58,7 +59,7 @@ export default function Dashboard() {
         }
       } catch (err) {
         console.error("Erro loadBooks:", err);
-        toast.error("Erro ao carregar livros: " + err);
+      
       } finally {
         setLoadingBooks(false);
       }
@@ -66,6 +67,22 @@ export default function Dashboard() {
     loadDashboard();
     loadBooks();
   }, []);
+
+  useEffect(() => {
+    const lower = searchTerm.trim().toLowerCase();
+    if (!lower) {
+      setFilteredBooks(books);
+      return;
+    }
+    setFilteredBooks(
+      books.filter(
+        (b) =>
+          b.title.toLowerCase().includes(lower) ||
+          b.author.toLowerCase().includes(lower) ||
+          b.genre.toLowerCase().includes(lower)
+      )
+    );
+  }, [searchTerm, books]);
 
   const clearSearch = () => {
     setSearchTerm("");
@@ -88,10 +105,8 @@ export default function Dashboard() {
           <div className="mb-8 flex justify-between items-center">
             <div className="flex items-center gap-4">
               <h1 className="text-3xl font-bold text-foreground">
-                <LayoutDashboard
-                  className="inline-block w-8 h-8 mr-2"
-                />
-                Dashboard de Livros
+                <LayoutDashboard className="inline-block w-8 h-8 mr-2" />
+                Dashboard de livros
               </h1>
               <button
                 onClick={handleReload}
@@ -101,46 +116,34 @@ export default function Dashboard() {
                 <RefreshCw className="w-5 h-5" />
               </button>
             </div>
-            <p className="text-muted-foreground">Gerencie sua biblioteca pessoal</p>
+            <p className="text-muted-foreground">
+              Gerencie sua biblioteca pessoal
+            </p>
           </div>
 
-          {/* Mensagem de erro */}
-          {dashboardError && (
-            <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-destructive">Erro ao carregar estatísticas</h3>
-                  <p className="text-sm text-muted-foreground mt-1">{dashboardError}</p>
-                </div>
-                <button
-                  onClick={handleReload}
-                  className="bg-destructive text-destructive-foreground px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
-                >
-                  Tentar Novamente
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Estatísticas */}
+          {/* Estatísticas com bordas coloridas */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             {loadingDashboard || !dashboardData ? (
               Array.from({ length: 5 }).map((_, i) => <SkeletonStat key={i} />)
             ) : (
               <>
-                <div className="bg-card p-4 rounded-lg shadow-sm border border-border transition-all hover:shadow-md">
+                <div className="bg-card p-4 rounded-lg shadow-sm border-l-4 border-blue-500 transition-all hover:shadow-md">
                   <div className="text-2xl font-bold text-foreground">
                     {dashboardData.totalLivrosRegistrados ?? 0}
                   </div>
-                  <div className="text-sm text-muted-foreground">Total de livros</div>
+                  <div className="text-sm text-muted-foreground">
+                    Total de livros
+                  </div>
                 </div>
-                <div className="bg-card p-4 rounded-lg shadow-sm border border-border transition-all hover:shadow-md">
+                <div className="bg-card p-4 rounded-lg shadow-sm border-l-4 border-gray-500 transition-all hover:shadow-md">
                   <div className="text-2xl font-bold text-foreground">
                     {dashboardData.livrosNaoIniciados ?? 0}
                   </div>
-                  <div className="text-sm text-muted-foreground">Não iniciados</div>
+                  <div className="text-sm text-muted-foreground">
+                    Não iniciados
+                  </div>
                 </div>
-                <div className="bg-card p-4 rounded-lg shadow-sm border border-border transition-all hover:shadow-md">
+                <div className="bg-card p-4 rounded-lg shadow-sm border-l-4 border-yellow-500 transition-all hover:shadow-md">
                   <div className="text-2xl font-bold text-foreground">
                     {dashboardData.livrosAbertos ?? 0}
                   </div>
@@ -148,7 +151,7 @@ export default function Dashboard() {
                     Leitura em andamento
                   </div>
                 </div>
-                <div className="bg-card p-4 rounded-lg shadow-sm border border-border transition-all hover:shadow-md">
+                <div className="bg-card p-4 rounded-lg shadow-sm border-l-4 border-green-500 transition-all hover:shadow-md">
                   <div className="text-2xl font-bold text-foreground">
                     {dashboardData.livrosFinalizados ?? 0}
                   </div>
@@ -156,7 +159,7 @@ export default function Dashboard() {
                     Leitura finalizada
                   </div>
                 </div>
-                <div className="bg-card p-4 rounded-lg shadow-sm border border-border transition-all hover:shadow-md">
+                <div className="bg-card p-4 rounded-lg shadow-sm border-l-4 border-blue-950 transition-all hover:shadow-md">
                   <div className="text-2xl font-bold text-foreground">
                     {dashboardData.totalPaginasLidas ?? 0}
                   </div>
@@ -168,14 +171,36 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Botão para livros */}
-          <button
-            onClick={() => router.push("/v1/books")}
-            className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:opacity-90 transition-all cursor-pointer shadow-sm"
-          >
-            Livros Cadastrados
-            <ArrowRight size={18} />
-          </button>
+          {/* Divisor e título da seção */}
+          <div className="flex items-center my-8">
+            <div className="flex-grow h-px bg-gray-300" />
+            <span className="px-3 text-gray-600 font-medium text-sm uppercase tracking-wide">
+              Ações
+            </span>
+            <div className="flex-grow h-px bg-gray-300" />
+          </div>
+
+          {/* Botões de ação */}
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <button
+              onClick={() => router.push("/v1/books")}
+              className="cursor-pointer flex items-center justify-center gap-2 bg-primary text-primary-foreground px-4 py-3 rounded-lg transition-all shadow-sm hover:shadow-md hover:brightness-90"
+            >
+              <span className="font-medium">
+                <BookCheck className="inline-block w-5 h-5 mr-1" /> Livros
+                Cadastrados
+              </span>
+            </button>
+
+            <button
+              onClick={() => router.push("/v1/book/register")}
+              className="cursor-pointer flex items-center justify-center gap-2 bg-primary text-primary-foreground px-4 py-3 rounded-lg transition-all shadow-sm hover:shadow-md hover:brightness-90"
+            >
+              <span className="font-medium">
+                <Plus className="inline-block w-5 h-5 mr-1" /> Cadastrar Livro
+              </span>
+            </button>
+          </div>
         </div>
       </main>
     </div>

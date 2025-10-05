@@ -1,49 +1,57 @@
-generator client {
-  provider = "prisma-client-js"
-}
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+generator client {
+  provider = "prisma-client-js"
+}
+
 model Book {
-  id              Int      @id @default(autoincrement())
+  id              Int     @id @default(autoincrement())
   title           String
   author          String
   publicationYear Int
   pages           Int
   statusId        Int
+  status          Status  @relation(fields: [statusId], references: [id])
   rating          Int?
   imgURL          String?
   currentPage     Int?
   notes           String?
   isbn            String?
-  genreId         Int
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  genre           Genre    @relation(fields: [genreId], references: [id])
-  status          Status   @relation(fields: [statusId], references: [id])
+
+  genreId Int
+  genre   Genre @relation(fields: [genreId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Genre {
   id           Int      @id @default(autoincrement())
   categoryName String   @unique
+  books        Book[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  books        Book[]
-}
-
-model Status {
-  id         Int        @id @default(autoincrement())
-  statusName StatusEnum @unique
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  books      Book[]
 }
 
 enum StatusEnum {
   Aberto
   Fechado
   Finalizado
+}
+
+model Status {
+  id         Int        @id @default(autoincrement())
+  statusName StatusEnum @unique
+  books      Book[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 }
