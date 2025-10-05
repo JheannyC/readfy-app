@@ -3,7 +3,7 @@
 import { Book } from "@/app/types/book";
 import { useRouter } from "next/navigation";
 import { SquarePen, Trash } from "lucide-react";
-import StarRating from "../components/StarRating";
+import StarRating from "@/app/frontend/components/StarRating";
 import { getStatusColor } from "@/app/types/statusColor";
 
 interface BookCardProps {
