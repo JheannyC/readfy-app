@@ -140,7 +140,7 @@ export default function EditBookPage() {
         break;
       case "paginas":
         const pages = Number(value);
-        if (!value || isNaN(pages) || pages <= 0) return "Número de páginas deve ser maior que 0.";
+        if (!value || isNaN(pages) || pages < 0) return "Número de páginas deve ser maior ou igual a 0.";
         break;
       case "currentPage":
         const currentPage = Number(value);
