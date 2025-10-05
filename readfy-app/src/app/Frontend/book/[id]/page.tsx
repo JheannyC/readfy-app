@@ -7,9 +7,9 @@ import { toast } from "react-toastify";
 import { ArrowLeft, LibraryBig, SquarePen, Trash } from "lucide-react";
 import StarRating from "@/app/frontend/components/StarRating";
 import { getStatusColor } from "@/app/types/statusColor";
-import SkeletonBookCard from "@/app/frontend/components/SkeletonBookCard";
-import SkeletonBookDetails from "@/app/frontend/components/SkeletonBookCard";
+   
 import Link from "next/link";
+import SkeletonBookCard from "../../components/SkeletonBookCard";
 
 export default function BookDetailsPage() {
   const params = useParams();
@@ -94,7 +94,7 @@ export default function BookDetailsPage() {
   };
 
   if (loading) {
-    return <SkeletonBookDetails />;
+    return <SkeletonBookCard />;
   }
 
   if (!book) {
