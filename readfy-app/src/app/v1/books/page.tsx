@@ -12,6 +12,10 @@ import {
   Trash,
   ArrowLeft,
   Loader2,
+  BookCheck,
+  BookOpen,
+  Heart,
+  BookLock,
 } from "lucide-react";
 import SkeletonCard from "@/app/v1/components/SkeletonCard";
 import ConfirmDeleteModal from "@/app/v1/components/ConfirmDeleteModal";
@@ -35,7 +39,6 @@ export default function Dashboard() {
     Finalizado: "Finalizado",
   };
 
-  // === Carregar livros ===
   useEffect(() => {
     const loadBooks = async () => {
       try {
@@ -57,7 +60,6 @@ export default function Dashboard() {
     loadBooks();
   }, []);
 
-  // === Filtro de busca ===
   useEffect(() => {
     const lower = searchTerm.trim().toLowerCase();
     if (!lower) {
@@ -74,7 +76,6 @@ export default function Dashboard() {
     );
   }, [searchTerm, books]);
 
-  // === Deletar livro ===
   const handleDelete = async (bookId: string) => {
     try {
       setDeletingBookId(bookId);
@@ -96,7 +97,18 @@ export default function Dashboard() {
       setDeletingBookId(null);
     }
   };
-
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "Finalizado":
+        return <BookCheck className="w-4 h-4" />;
+      case "Aberto":
+        return <BookOpen className="w-4 h-4" />;
+      case "Fechado":
+        return <BookLock className="w-4 h-4" />;
+      default:
+        return <BookLock className="w-4 h-4" />;
+    }
+  };
   return (
     <div className="flex flex-col min-h-[calc(100vh-64px)] bg-gray-50">
       <div className="h-16 shrink-0" />
@@ -112,12 +124,10 @@ export default function Dashboard() {
           {/* Header */}
           <div className="mb-8 flex justify-between items-center">
             <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-              <LibraryBig className="w-8 h-8 mr-2 text-blue-600" />
-              Livros Cadastrados
+              <LibraryBig className="w-8 h-8 mr-2" color="var(--color-icon)" />
+              Livros cadastrados
             </h1>
           </div>
-
-          {/* === Se não há livros cadastrados === */}
           {!loadingBooks && books.length === 0 ? (
             <div className="text-center py-10 bg-white rounded-lg shadow-md">
               <div className="text-4xl mb-4">📚</div>
@@ -130,9 +140,9 @@ export default function Dashboard() {
               </p>
               <button
                 onClick={() => router.push("/v1/book/register")}
-                className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium text-lg"
+                className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium text-lg cursor-pointer"
               >
-                Cadastrar Primeiro Livro
+                Cadastrar primeiro livro
                 <ArrowRight className="pl-1 inline-block w-5 h-5" />
               </button>
             </div>
@@ -153,7 +163,7 @@ export default function Dashboard() {
                     {searchTerm && (
                       <button
                         onClick={() => setSearchTerm("")}
-                        className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                        className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 cursor-pointer"
                       >
                         ✕
                       </button>
@@ -180,7 +190,6 @@ export default function Dashboard() {
                     <div
                       key={book.id}
                       className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 p-6 flex flex-col cursor-pointer group"
-                      onClick={() => router.push(`/v1/book/${book.id}`)}
                     >
                       {/* Capa */}
                       <div className="w-full aspect-[4/5] mb-3 overflow-hidden rounded-md bg-gray-100">
@@ -206,10 +215,11 @@ export default function Dashboard() {
                           </p>
                         </div>
                         <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                          className={`px-4 py-1 rounded-2xl text-xs font-medium flex items-center gap-1 ${getStatusColor(
                             book.status
                           )}`}
                         >
+                          {getStatusIcon(book.status)}
                           {statusLabels[book.status] || book.status}
                         </span>
                       </div>
@@ -263,7 +273,7 @@ export default function Dashboard() {
                             e.stopPropagation();
                             router.push(`/v1/book/update/${book.id}`);
                           }}
-                          className="p-3 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-3 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                           title="Editar livro"
                         >
                           <SquarePen className="w-5 h-5" />
@@ -275,7 +285,7 @@ export default function Dashboard() {
                             setBookToDelete(book);
                             setIsModalOpen(true);
                           }}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                           title="Excluir livro"
                         >
                           <Trash className="w-5 h-5" />
@@ -289,7 +299,7 @@ export default function Dashboard() {
                             e.stopPropagation();
                             router.push(`/v1/book/${book.id}`);
                           }}
-                          className="w-full flex items-center justify-center gap-2 text-blue-600 font-medium hover:underline transition-colors"
+                          className="w-full flex items-center justify-center gap-2 text-blue-600 font-medium hover:underline transition-colors cursor-pointer"
                         >
                           Ver mais <ArrowRight className="w-4 h-4" />
                         </button>
@@ -307,7 +317,6 @@ export default function Dashboard() {
         </div>
       </main>
 
-      {/* === Modal fora do map === */}
       {bookToDelete && (
         <ConfirmDeleteModal
           isOpen={isModalOpen}

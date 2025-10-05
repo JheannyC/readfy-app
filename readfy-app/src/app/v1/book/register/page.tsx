@@ -3,7 +3,15 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import {
+  ArrowLeft,
+  Image,
+  Plus,
+  PlusCircle,
+  Trash2,
+  UploadCloud,
+  X,
+} from "lucide-react";
 import { toast } from "react-toastify";
 import { StatusEnum } from "@prisma/client";
 import FormField from "../../components/FormField";
@@ -86,10 +94,8 @@ export default function RegisterBook() {
       case "paginas":
         if (value.length > 6) value = value.slice(0, 6);
         const pages = Number(value);
-
         if (value.trim() === "" || isNaN(pages) || pages < 0)
           return "Páginas deve ser maior ou igual a 0.";
-
         break;
       case "currentPage":
         const currentPage = Number(value);
@@ -100,8 +106,20 @@ export default function RegisterBook() {
           return "Não pode ser maior que o número de páginas.";
         break;
       case "notes":
-        if (value.length >= 250)
+        if (value.length > 250)
           return "Notas e observações podem ter no máximo 250 caracteres.";
+        break;
+      case "imagemUrl":
+        if (value.trim() !== "") {
+          try {
+            new URL(value); // tenta construir uma URL válida
+            const isImage = /\.(jpeg|jpg|png|gif|webp|avif)$/i.test(value);
+            if (!isImage)
+              return "A URL deve apontar para uma imagem (.jpg, .png, .gif, .webp, .avif).";
+          } catch {
+            return "Informe uma URL válida (ex: https://exemplo.com/imagem.jpg)";
+          }
+        }
         break;
       default:
         return null;
@@ -196,9 +214,11 @@ export default function RegisterBook() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="flex flex-col min-h-[calc(100vh-64px)] bg-gray-50">
+      <div className="h-16 shrink-0" />
+      <main className="flex-1 overflow-y-auto p-6">
       {loading && <LoadingOverlay />}
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <Link
             href="/v1/dashboard"
@@ -206,8 +226,12 @@ export default function RegisterBook() {
           >
             <ArrowLeft className="inline-block w-5 h-5 mr-2" /> Voltar
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Cadastrar Novo Livro
+          <h1 className="text-4xl font-bold text-gray-900">
+            <Plus
+              className="inline-block w-8 h-8 mr-2"
+              color="var(--color-icon)"
+            />
+            Cadastrar novo livro
           </h1>
           <p className="text-gray-600 mt-2">
             Preencha as informações do livro para adicionar à sua biblioteca
@@ -220,47 +244,91 @@ export default function RegisterBook() {
           }`}
         >
           <div className="border-b border-gray-200 pb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Capa do Livro
-            </h2>
-            {previewUrl && (
-              <div className="mb-4">
-                <div className="relative inline-block">
-                  <img
-                    src={previewUrl}
-                    alt="Preview"
-                    className="w-32 h-48 object-cover rounded-lg shadow-md border"
+            {/* Capa do Livro */}
+            <div className="border-b border-gray-200 pb-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Capa do livro
+              </h2>
+              <div className="flex flex-col md:flex-row gap-8 items-start">
+                <div className="w-40 h-48 flex-shrink-0 border rounded-lg overflow-hidden bg-gray-100 relative flex items-center justify-center">
+                  {formData.imagemFile ? (
+                    <>
+                      <img
+                        src={previewUrl}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={removeImage}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 z-10"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </>
+                  ) : (
+                    <span className="flex flex-col items-center justify-center text-gray-400 text-sm px-2 h-full">
+                      <Image className="w-6 h-6 mb-1" />
+                      Sem imagem
+                    </span>
+                  )}
+                </div>
+                <div className="flex-1 flex flex-col gap-4">
+                  <label className="inline-block bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 cursor-pointer font-medium w-max text-center">
+                    <UploadCloud className="inline-flex mr-2" size={16} />
+                    Escolher arquivo
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                  </label>
+                  <span className="text-xs text-gray-500">
+                    Formatos: JPG, JPEG, PNG. Tamanho máximo: 5MB
+                  </span>
+
+                  <input
+                    type="text"
+                    value={formData.imagemUrl}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setFormData((prev) => ({
+                        ...prev,
+                        imagemUrl: value,
+                        imagemFile: null,
+                      }));
+                      setPreviewUrl("");
+                      const error = validateFieldSync("imagemUrl", value);
+                      setErrors((prev) => ({
+                        ...prev,
+                        imagemUrl: error || undefined,
+                      }));
+                    }}
+                    placeholder="Ou cole a URL da imagem"
+                    disabled={!!formData.imagemFile}
+                    className={`w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 ${
+                      formData.imagemFile
+                        ? "bg-gray-100 cursor-not-allowed"
+                        : errors.imagemUrl
+                        ? "border-red-500 focus:ring-red-500"
+                        : "focus:ring-blue-500 border-gray-300"
+                    }`}
                   />
-                  <button
-                    type="button"
-                    onClick={removeImage}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
-                  >
-                    ✕
-                  </button>
+                  {errors.imagemUrl && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.imagemUrl}
+                    </p>
+                  )}
                 </div>
               </div>
-            )}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Upload da Imagem
-              </label>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Formatos: JPG, PNG, GIF (máx 5MB)
-              </p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-gray-200 pb-6">
             <FormField
-              label="Título *"
+              label="Título do livro"
               type="text"
               value={formData.titulo}
               onChange={(v) => handleInputChange("titulo", v)}
@@ -268,9 +336,10 @@ export default function RegisterBook() {
               fieldName="titulo"
               errors={errors}
               maxLength={100}
+              required={true}
             />
             <FormField
-              label="Autor *"
+              label="Nome do autor"
               type="text"
               value={formData.autor}
               onChange={(v) => handleInputChange("autor", v)}
@@ -278,9 +347,10 @@ export default function RegisterBook() {
               errors={errors}
               maxLength={150}
               placeholder="Ex: Machado de Assis"
+              required={true}
             />
             <FormField
-              label="Gênero *"
+              label="Gênero"
               type="text"
               value={formData.genero}
               onChange={(v) => handleInputChange("genero", v)}
@@ -288,6 +358,7 @@ export default function RegisterBook() {
               errors={errors}
               maxLength={100}
               placeholder="Ex: Ficção"
+              required={true}
             />
             <FormField
               label="ISBN"
@@ -303,7 +374,7 @@ export default function RegisterBook() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-gray-200 pb-6">
             <FormField
-              label="Ano de Publicação *"
+              label="Ano de publicação"
               type="number"
               value={formData.anoPublicacao}
               onChange={(v) => handleInputChange("anoPublicacao", v)}
@@ -312,9 +383,10 @@ export default function RegisterBook() {
               min={1}
               max={new Date().getFullYear()}
               placeholder="Ex: 1899"
+              required={true}
             />
             <FormField
-              label="Número de Páginas *"
+              label="Número de páginas"
               type="number"
               value={formData.paginas}
               onChange={(v) => handleInputChange("paginas", v)}
@@ -326,7 +398,7 @@ export default function RegisterBook() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-gray-200 pb-6">
             <SelectField
-              label="Status *"
+              label="Status de leitura"
               value={formData.status}
               onChange={(v) => handleInputChange("status", v)}
               fieldName="status"
@@ -336,6 +408,7 @@ export default function RegisterBook() {
                 { value: StatusEnum.Aberto, label: "Lendo" },
                 { value: StatusEnum.Finalizado, label: "Finalizado" },
               ]}
+              required={true}
             />
             <SelectField
               label="Avaliação"
@@ -345,17 +418,17 @@ export default function RegisterBook() {
               errors={errors}
               options={[
                 { value: "0", label: "Sem avaliação" },
-                { value: "1", label: "⭐" },
-                { value: "2", label: "⭐⭐" },
-                { value: "3", label: "⭐⭐⭐" },
-                { value: "4", label: "⭐⭐⭐⭐" },
-                { value: "5", label: "⭐⭐⭐⭐⭐" },
+                { value: "1", label: "⭐ - Péssimo" },
+                { value: "2", label: "⭐⭐ - Ruim" },
+                { value: "3", label: "⭐⭐⭐ - Regular" },
+                { value: "4", label: "⭐⭐⭐⭐ - Bom" },
+                { value: "5", label: "⭐⭐⭐⭐⭐ - Excelente" },
               ]}
             />
           </div>
 
           <FormField
-            label="Página Atual"
+            label="Página atual (página lida atualmente):"
             type="number"
             value={formData.currentPage}
             onChange={(v) => handleInputChange("currentPage", v)}
@@ -366,7 +439,7 @@ export default function RegisterBook() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Notas e Observações
+              Notas e/ou observações
             </label>
             <textarea
               value={formData.notes}
@@ -394,13 +467,14 @@ export default function RegisterBook() {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Salvando..." : "Cadastrar Livro"}
+              {loading ? "Salvando..." : "Cadastrar livro"}
             </button>
           </div>
         </form>
       </div>
+      </main>
     </div>
   );
 }

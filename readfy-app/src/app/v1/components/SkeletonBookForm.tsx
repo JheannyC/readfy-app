@@ -3,7 +3,7 @@
 export default function BookFormSkeleton() {
   return (
     <div className="min-h-screen bg-gray-50 py-8 animate-pulse">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <div className="h-6 w-40 bg-gray-300 rounded mb-3"></div>
           <div className="h-8 w-64 bg-gray-300 rounded mb-2"></div>

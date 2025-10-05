@@ -3,7 +3,13 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Trash, Trash2, UploadCloud } from "lucide-react";
+import {
+  ArrowLeft,
+  Image,
+  Pencil,
+  UploadCloud,
+  X,
+} from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import { StatusEnum } from "@prisma/client";
 import "react-toastify/dist/ReactToastify.css";
@@ -159,6 +165,18 @@ export default function EditBookPage() {
         if (value.length > 250)
           return "Notas e observações podem ter no máximo 250 caracteres.";
         break;
+      case "imagemUrl":
+        if (value.trim() !== "") {
+          try {
+            new URL(value);
+            const isImage = /\.(jpeg|jpg|png|gif|webp|avif)$/i.test(value);
+            if (!isImage)
+              return "A URL deve apontar para uma imagem (.jpg, .png, .gif, .webp, .avif).";
+          } catch {
+            return "Informe uma URL válida (ex: https://exemplo.com/imagem.jpg)";
+          }
+        }
+        break;
       default:
         return null;
     }
@@ -169,7 +187,6 @@ export default function EditBookPage() {
     field: K,
     value: string
   ) => {
-    // Máscara de ISBN
     if (field === "isbn") {
       value = value.replace(/[^\d]/g, "");
       if (value.length > 3 && value.length <= 13)
@@ -178,7 +195,6 @@ export default function EditBookPage() {
         value = value.slice(0, 3) + "-" + value.slice(3, 13);
     }
 
-    // Limitar campos numéricos
     if (["anoPublicacao", "paginas", "currentPage"].includes(field)) {
       const maxLengthMap: Record<string, number> = {
         anoPublicacao: 4,
@@ -188,7 +204,6 @@ export default function EditBookPage() {
       value = value.slice(0, maxLengthMap[field]);
     }
 
-    // Limitar notas
     if (field === "notes") value = value.slice(0, 250);
 
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -197,7 +212,6 @@ export default function EditBookPage() {
     setErrors((prev) => ({ ...prev, [field]: error || undefined }));
   };
 
-  // Submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -245,7 +259,6 @@ export default function EditBookPage() {
       }
 
       toast.success("Livro atualizado com sucesso!");
-      // Mantém na mesma página
     } catch (err) {
       console.error(err);
       toast.error("Erro ao atualizar livro: " + err);
@@ -257,9 +270,11 @@ export default function EditBookPage() {
   if (loading) return <BookFormSkeleton />;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="flex flex-col min-h-[calc(100vh-64px)] bg-gray-50">
+      <div className="h-16 shrink-0" />
+      <main className="flex-1 overflow-y-auto p-6">
       <ToastContainer position="top-right" autoClose={3000} />
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <Link
             href="/v1/books"
@@ -267,7 +282,13 @@ export default function EditBookPage() {
           >
             <ArrowLeft className="inline-block w-5 h-5 mr-2" /> Voltar
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Editar Livro</h1>
+          <h1 className="text-4xl font-bold text-gray-900">
+            <Pencil
+              className="inline-block w-8 h-8 mr-2"
+              color="var(--color-icon)"
+            />{" "}
+            Editar livro
+          </h1>
           <p className="text-gray-600 mt-2">Atualize as informações do livro</p>
         </div>
 
@@ -278,29 +299,36 @@ export default function EditBookPage() {
           {/* Capa */}
           <div className="border-b border-gray-200 pb-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Capa do Livro
+              Capa do livro
             </h2>
             <div className="flex flex-col md:flex-row gap-8 items-start">
-              <div className="w-32 h-48 flex-shrink-0 border rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
+              <div className="w-40 h-48 flex-shrink-0 border rounded-lg overflow-hidden bg-gray-100 relative flex items-center justify-center">
                 {formData.imagemFile ? (
-                  <img
-                    src={previewUrl}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                  />
+                  <>
+                    <img
+                      src={previewUrl}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={removeImage}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 z-10"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </>
                 ) : (
-                  <span className="text-gray-400 text-sm text-center px-2">
+                  <span className="flex flex-col items-center justify-center text-gray-400 text-sm px-2 h-full">
+                    <Image className="w-6 h-6 mb-1" />
                     Sem imagem
                   </span>
                 )}
               </div>
-
-              {/* Upload e campo de URL */}
               <div className="flex-1 flex flex-col gap-4">
-                {/* Botão estilizado para upload */}
                 <label className="inline-block bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 cursor-pointer font-medium w-max text-center">
                   <UploadCloud className="inline-flex mr-2" size={16} />
-                  Escolher Arquivo
+                  Escolher arquivo
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -309,29 +337,41 @@ export default function EditBookPage() {
                     className="hidden"
                   />
                 </label>
+                <span className="text-xs text-gray-500">
+                  Formatos: JPG, JPEG, PNG. Tamanho máximo: 5MB
+                </span>
 
                 <input
                   type="text"
                   value={formData.imagemUrl}
-                  onChange={(e) => handleImageUrlChange(e.target.value)}
-                  placeholder="Cole a URL da imagem (sem preview)"
-                  disabled={!!formData.imagemFile} // trava quando há upload
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setFormData((prev) => ({
+                      ...prev,
+                      imagemUrl: value,
+                      imagemFile: null,
+                    }));
+                    setPreviewUrl("");
+                    const error = validateFieldSync("imagemUrl", value);
+                    setErrors((prev) => ({
+                      ...prev,
+                      imagemUrl: error || undefined,
+                    }));
+                  }}
+                  placeholder="Ou cole a URL da imagem"
+                  disabled={!!formData.imagemFile}
                   className={`w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 ${
                     formData.imagemFile
                       ? "bg-gray-100 cursor-not-allowed"
-                      : "focus:ring-blue-500"
+                      : errors.imagemUrl
+                      ? "border-red-500 focus:ring-red-500"
+                      : "focus:ring-blue-500 border-gray-300"
                   }`}
                 />
-
-                {formData.imagemFile && (
-                  <button
-                    type="button"
-                    onClick={removeImage}
-                    className="self-start bg-red-400 text-white px-4 py-2 rounded-lg hover:bg-red-500 transition-colors font-medium text-sm"
-                  >
-                    <Trash2 className="inline-flex mr-2" size={16} />
-                    Remover Imagem
-                  </button>
+                {errors.imagemUrl && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.imagemUrl}
+                  </p>
                 )}
               </div>
             </div>
@@ -340,7 +380,7 @@ export default function EditBookPage() {
           {/* Campos principais */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-gray-200 pb-6">
             <FormField
-              label="Título *"
+              label="Título"
               type="text"
               value={formData.titulo}
               onChange={(v) => handleInputChange("titulo", v)}
@@ -348,9 +388,10 @@ export default function EditBookPage() {
               errors={errors}
               maxLength={100}
               placeholder="Ex: Dom Casmurro"
+              required={true}
             />
             <FormField
-              label="Autor *"
+              label="Nome do autor"
               type="text"
               value={formData.autor}
               onChange={(v) => handleInputChange("autor", v)}
@@ -358,9 +399,10 @@ export default function EditBookPage() {
               errors={errors}
               maxLength={150}
               placeholder="Ex: Machado de Assis"
+              required={true}
             />
             <FormField
-              label="Gênero *"
+              label="Gênero"
               type="text"
               value={formData.genero}
               onChange={(v) => handleInputChange("genero", v)}
@@ -368,6 +410,7 @@ export default function EditBookPage() {
               errors={errors}
               maxLength={100}
               placeholder="Ex: Ficção"
+              required={true}
             />
             <FormField
               label="ISBN"
@@ -384,29 +427,31 @@ export default function EditBookPage() {
           {/* Publicação */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-gray-200 pb-6">
             <FormField
-              label="Ano de Publicação *"
+              label="Ano de publicação"
               type="number"
               value={formData.anoPublicacao}
               onChange={(v) => handleInputChange("anoPublicacao", v)}
               fieldName="anoPublicacao"
               errors={errors}
               placeholder="Ex: 1899"
+              required={true}
             />
             <FormField
-              label="Número de Páginas *"
+              label="Número de páginas"
               type="number"
               value={formData.paginas}
               onChange={(v) => handleInputChange("paginas", v)}
               fieldName="paginas"
               errors={errors}
               placeholder="Ex: 200"
+              required={true}
             />
           </div>
 
           {/* Status e avaliação */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-gray-200 pb-6">
             <SelectField
-              label="Status *"
+              label="Status"
               value={formData.status}
               onChange={(v) => handleInputChange("status", v)}
               fieldName="status"
@@ -416,6 +461,7 @@ export default function EditBookPage() {
                 { value: StatusEnum.Aberto, label: "Lendo" },
                 { value: StatusEnum.Finalizado, label: "Finalizado" },
               ]}
+              required={true}
             />
             <SelectField
               label="Avaliação"
@@ -425,18 +471,18 @@ export default function EditBookPage() {
               errors={errors}
               options={[
                 { value: "0", label: "Sem avaliação" },
-                { value: "1", label: "⭐" },
-                { value: "2", label: "⭐⭐" },
-                { value: "3", label: "⭐⭐⭐" },
-                { value: "4", label: "⭐⭐⭐⭐" },
-                { value: "5", label: "⭐⭐⭐⭐⭐" },
+                { value: "1", label: "⭐ - Péssimo" },
+                { value: "2", label: "⭐⭐ - Ruim" },
+                { value: "3", label: "⭐⭐⭐ - Regular" },
+                { value: "4", label: "⭐⭐⭐⭐ - Bom" },
+                { value: "5", label: "⭐⭐⭐⭐⭐ - Excelente" },
               ]}
             />
           </div>
 
           {/* Página atual e notas */}
           <FormField
-            label="Página Atual"
+            label="Página atual (página lida atualmente)"
             type="number"
             value={formData.currentPage}
             onChange={(v) => handleInputChange("currentPage", v)}
@@ -446,7 +492,7 @@ export default function EditBookPage() {
           />
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Notas e Observações
+              Notas e/ou observações
             </label>
             <textarea
               value={formData.notes}
@@ -477,11 +523,12 @@ export default function EditBookPage() {
               disabled={saving}
               className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {saving ? "Salvando..." : "Salvar Alterações"}
+              {saving ? "Salvando..." : "Salvar alterações"}
             </button>
           </div>
         </form>
       </div>
+      </main>
     </div>
   );
 }

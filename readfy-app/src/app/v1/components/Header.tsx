@@ -28,6 +28,12 @@ export default function Header() {
               Dashboard
             </Link>
             <Link
+              href="/v1/books"
+              className="text-gray-600 hover:text-gray-900"
+            >
+              Livros cadastrados
+            </Link>
+            <Link
               href="/v1/book/register"
               className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center gap-2"
             >
@@ -53,6 +59,12 @@ export default function Header() {
               className="text-gray-600 hover:text-gray-900"
             >
               Dashboard
+            </Link>
+            <Link
+              href="/v1/books"
+              className="text-gray-600 hover:text-gray-900"
+            >
+              Livros cadastrados
             </Link>
             <Link
               href="/v1/book/register"

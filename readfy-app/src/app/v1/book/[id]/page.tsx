@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Book } from "@/app/types/book";
 import { toast } from "react-toastify";
-import { ArrowLeft, LibraryBig, SquarePen, Trash } from "lucide-react";
+import { ArrowLeft, BookCheck, BookLock, BookOpen, Heart, LibraryBig, SquarePen, Trash } from "lucide-react";
 import StarRating from "@/app/v1/components/StarRating";
 import { getStatusColor } from "@/app/types/statusColor";
-   
+
 import Link from "next/link";
 import SkeletonBookCard from "../../components/SkeletonBookCard";
 
@@ -83,13 +83,13 @@ export default function BookDetailsPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "Lido":
-        return "✅";
+        return <BookCheck className="w-4 h-4" />;
       case "Lendo":
-        return "📖";
+        return <BookOpen className="w-4 h-4" />;
       case "Quero Ler":
-        return "📚";
+        return <Heart className="w-4 h-4" />;
       default:
-        return "📖";
+        return <BookLock className="w-4 h-4" />;
     }
   };
 
@@ -106,16 +106,17 @@ export default function BookDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="flex flex-col min-h-[calc(100vh-64px)] bg-gray-50">
+      <div className="h-16 shrink-0" />
       <main className="flex-1 overflow-y-auto p-6">
-        <Link
-          href="/v1/books"
-          className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
-        >
-          <ArrowLeft className="inline-block w-5 h-5 mr-2" /> Voltar
-        </Link>
         <div className="max-w-7xl mx-auto">
           {/* Header */}
+          <Link
+            href="/v1/books"
+            className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
+          >
+            <ArrowLeft className="inline-block w-5 h-5 mr-2" /> Voltar
+          </Link>
           <div className="mb-8 flex justify-between items-center">
             <h1 className="text-3xl font-bold text-gray-900 flex items-center">
               <LibraryBig className="w-8 h-8 mr-2 text-blue-600" />
@@ -205,10 +206,8 @@ export default function BookDetailsPage() {
               {/* Botões */}
               <div className="flex justify-end space-x-2 mt-6 pt-4 border-t border-gray-100">
                 <button
-                  onClick={() =>
-                    router.push(`/v1/book/update/${book.id}`)
-                  }
-                  className="p-3 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  onClick={() => router.push(`/v1/book/update/${book.id}`)}
+                  className="p-3 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                   title="Editar livro"
                 >
                   <SquarePen className="w-6 h-6" />
@@ -220,7 +219,7 @@ export default function BookDetailsPage() {
                   className={`p-3 rounded-lg transition-colors ${
                     deletingBookId === book.id
                       ? "text-gray-300 cursor-not-allowed bg-gray-100"
-                      : "text-gray-400 hover:text-red-600 hover:bg-red-50"
+                      : "text-gray-400 hover:text-red-600 hover:bg-red-50 cursor-pointer"
                   }`}
                   title={
                     deletingBookId === book.id

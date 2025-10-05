@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Book } from "@/app/types/book";
 import { DashboardResponse } from "@/app/types/dashboard";
 import { toast } from "react-toastify";
-import { ArrowRight, LayoutDashboard } from "lucide-react";
+import { BookCheck, LayoutDashboard, Plus } from "lucide-react";
 import SkeletonStat from "../components/SkeletonStat";
 
 export default function Dashboard() {
@@ -93,7 +93,6 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col min-h-[calc(100vh-64px)] bg-gray-50">
-
       <div className="h-16 shrink-0" />
       <main className="flex-1 overflow-y-auto p-6">
         <div className="max-w-7xl mx-auto">
@@ -104,7 +103,7 @@ export default function Dashboard() {
                 className="inline-block w-8 h-8 mr-2"
                 color="var(--color-icon)"
               />
-              Dashboard de Livros
+              Dashboard de livros
             </h1>
             <p className="text-gray-600">Gerencie sua biblioteca pessoal</p>
           </div>
@@ -153,20 +152,36 @@ export default function Dashboard() {
               </>
             )}
           </div>
-          <button
-            onClick={() => router.push("/v1/books")}
-            className="flex items-center gap-2 bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all cursor-pointer"
-          >
-            Livros Cadastrados
-            <ArrowRight size={18} className="text-white" />
-          </button>
-                    <button
-            onClick={() => router.push("/v1/book/register")}
-            className="flex items-center gap-2 bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all cursor-pointer"
-          >
-            Cadastrar Livro
-            <ArrowRight size={18} className="text-white" />
-          </button>
+          {/* Divisor e título da seção */}
+          <div className="flex items-center my-8">
+            <div className="flex-grow h-px bg-gray-300" />
+            <span className="px-3 text-gray-600 font-medium text-sm uppercase tracking-wide">
+              Ações
+            </span>
+            <div className="flex-grow h-px bg-gray-300" />
+          </div>
+
+          {/* Botões de ação */}
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <button
+              onClick={() => router.push("/v1/books")}
+              className="cursor-pointer flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-700 text-white px-4 py-3 rounded-lg transition-all shadow-sm hover:shadow-md"
+            >
+              <span className="font-medium">
+                <BookCheck className="inline-block w-5 h-5 mr-1" /> Livros
+                Cadastrados
+              </span>
+            </button>
+
+            <button
+              onClick={() => router.push("/v1/book/register")}
+              className="cursor-pointer flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-700 text-white px-4 py-3 rounded-lg transition-all shadow-sm hover:shadow-md"
+            >
+              <span className="font-medium">
+                <Plus className="inline-block w-5 h-5 mr-1" /> Cadastrar Livro
+              </span>
+            </button>
+          </div>
         </div>
       </main>
     </div>
