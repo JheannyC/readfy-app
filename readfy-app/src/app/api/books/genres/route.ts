@@ -14,15 +14,15 @@ export async function GET(request: NextRequest) {
     if (generoParam) {
       livros = await prisma.book.findMany({
         where: {
-          genero: {
+          genre: {
             categoryName: { contains: generoParam, mode: "insensitive" },
           },
         },
-        include: { genero: true, status: true },
+        include: { genre: true, status: true },
       });
     } else {
       livros = await prisma.book.findMany({
-        include: { genero: true, status: true },
+        include: { genre: true, status: true },
       });
     }
 
@@ -33,14 +33,15 @@ export async function GET(request: NextRequest) {
         totalLivros: livros.length,
         livros: livros.map((l) => ({
           id: l.id,
-          titulo: l.titulo,
-          autor: l.autor,
-          genero: l.genero?.categoryName ?? null,
-          anoPublicacao: l.anoPublicacao,
-          paginas: l.paginas,
+          title: l.title,
+          author: l.author,
+          genre: l.genre?.categoryName ?? null,
+          publicationYear: l.publicationYear,
+          pages: l.pages,
           status: l.status?.statusName ?? null,
-          avaliacao: l.avaliacao,
+          rating: l.rating,
           imgURL: l.imgURL,
+          isbn: l.isbn,
         })),
       },
       { status: 200 }

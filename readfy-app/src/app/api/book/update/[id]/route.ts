@@ -1,21 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient, StatusEnum } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import prisma from "@/lib/prisma";
+import { StatusEnum } from "@prisma/client";
 
 interface Params {
   id: string;
 }
 
 interface BookBody {
-  titulo?: string;
-  autor?: string;
-  anoPublicacao?: number;
-  paginas?: number;
-  avaliacao?: number;
+  title?: string;
+  author?: string;
+  genre?: string;
+  publicationYear?: number;
+  pages?: number;
+  rating?: number;
+  status?: StatusEnum | string;
+  currentPage?: number;
+  notes?: string;
+  isbn?: string;
   imgURL?: string;
 }
 
+// 🔹 Validações
 function validateString(value: string | undefined, fieldName: string) {
   if (value !== undefined && (typeof value !== "string" || !value.trim())) {
     return `${fieldName} inválido.`;
@@ -31,19 +36,18 @@ function validateNumber(
 ) {
   if (
     value !== undefined &&
-    (typeof value !== "number" ||
-      value < min ||
-      (max !== undefined && value > max))
+    (typeof value !== "number" || value < min || (max !== undefined && value > max))
   ) {
     return `${fieldName} inválido.`;
   }
   return null;
 }
 
+// 🔹 Cria ou retorna Status
 async function getOrCreateStatus(status: string) {
   const normalized = status.trim();
-  const allowed = ["Aberto", "Fechado", "Finalizado"];
-  if (!allowed.includes(normalized)) throw new Error("Status inválido");
+  const allowed = Object.values(StatusEnum);
+  if (!allowed.includes(normalized as StatusEnum)) throw new Error("Status inválido");
 
   let statusExistente = await prisma.status.findUnique({
     where: { statusName: normalized as StatusEnum },
@@ -57,18 +61,18 @@ async function getOrCreateStatus(status: string) {
   return statusExistente;
 }
 
-async function getOrCreateGenero(genero: string) {
-  const normalized = genero.toLowerCase().trim();
-  let generoExistente = await prisma.genre.findUnique({
+// 🔹 Cria ou retorna Genre
+async function getOrCreateGenre(genre: string) {
+  const normalized = genre.toLowerCase().trim();
+  let genreExistente = await prisma.genre.findUnique({
     where: { categoryName: normalized },
   });
-
-  if (!generoExistente) {
-    generoExistente = await prisma.genre.create({
+  if (!genreExistente) {
+    genreExistente = await prisma.genre.create({
       data: { categoryName: normalized },
     });
   }
-  return generoExistente;
+  return genreExistente;
 }
 
 export async function PUT(
@@ -78,102 +82,106 @@ export async function PUT(
   try {
     const { id: idStr } = await context.params;
     const id = parseInt(idStr, 10);
-
     if (!Number.isInteger(id) || id <= 0) {
       return NextResponse.json({ error: "ID inválido." }, { status: 400 });
     }
 
-    const body = await request.json();
-    const {
-      titulo,
-      autor,
-      genero,
-      anoPublicacao,
-      paginas,
-      status,
-      avaliacao,
-      imgURL,
-    } = body as BookBody & { status?: string; genero?: string };
+    // 🔹 Parse seguro do JSON
+    let body: BookBody;
+    try {
+      body = (await request.json()) as BookBody;
+    } catch {
+      return NextResponse.json(
+        { error: "Corpo inválido.", details: "Não foi possível interpretar o JSON." },
+        { status: 400 }
+      );
+    }
 
+    const {
+      title,
+      author,
+      genre,
+      publicationYear,
+      pages,
+      rating,
+      status,
+      currentPage,
+      notes,
+      isbn,
+      imgURL,
+    } = body;
+
+    // 🔹 Validações individuais
     const errors = [
-      validateString(titulo, "Título"),
-      validateString(autor, "Autor"),
-      validateString(genero, "Gênero"),
-      validateNumber(anoPublicacao, "Ano de publicação"),
-      validateNumber(paginas, "Número de páginas"),
-      validateNumber(avaliacao, "Avaliação", 0, 5),
-      imgURL !== undefined && typeof imgURL !== "string"
-        ? "URL da imagem inválida."
-        : null,
+      validateString(title, "Título"),
+      validateString(author, "Autor"),
+      validateString(genre, "Gênero"),
+      validateNumber(publicationYear, "Ano de publicação"),
+      validateNumber(pages, "Número de páginas"),
+      validateNumber(rating, "Avaliação", 0, 5),
+      validateNumber(currentPage, "Página atual", 0, pages),
+      imgURL !== undefined && typeof imgURL !== "string" ? "URL da imagem inválida." : null,
+      isbn !== undefined && typeof isbn !== "string" ? "ISBN inválido." : null,
+      notes !== undefined && typeof notes !== "string" ? "Notas inválidas." : null,
     ].filter(Boolean);
 
     if (errors.length > 0) {
       return NextResponse.json({ error: errors.join(" ") }, { status: 400 });
     }
 
+    // 🔹 Verifica se livro existe
     const livroExistente = await prisma.book.findUnique({ where: { id } });
     if (!livroExistente) {
-      return NextResponse.json(
-        { error: "Livro não encontrado." },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Livro não encontrado." }, { status: 404 });
     }
 
-    const statusExistente = status
-      ? await getOrCreateStatus(status)
-      : undefined;
-    const generoExistente = genero
-      ? await getOrCreateGenero(genero)
-      : undefined;
+    // 🔹 Relacionamentos
+    const relationalData: any = {};
+    if (status) {
+      const statusExistente = await getOrCreateStatus(status.toString());
+      relationalData.status = { connect: { id: statusExistente.id } };
+    }
+    if (genre) {
+      const genreExistente = await getOrCreateGenre(genre);
+      relationalData.genre = { connect: { id: genreExistente.id } };
+    }
 
-    const updateData: Partial<BookBody> = {
-      ...(titulo !== undefined && { titulo: titulo.trim() }),
-      ...(autor !== undefined && { autor: autor.trim() }),
-      ...(anoPublicacao !== undefined && { anoPublicacao }),
-      ...(paginas !== undefined && { paginas }),
-      ...(avaliacao !== undefined && { avaliacao }),
-      ...(imgURL !== undefined && { imgURL }),
-    };
+    // 🔹 Campos diretos
+    const updateData: any = {};
+    if (title !== undefined) updateData.title = title.trim();
+    if (author !== undefined) updateData.author = author.trim();
+    if (publicationYear !== undefined) updateData.publicationYear = publicationYear;
+    if (pages !== undefined) updateData.pages = pages;
+    if (rating !== undefined) updateData.rating = rating;
+    if (currentPage !== undefined) updateData.currentPage = currentPage;
+    if (notes !== undefined) updateData.notes = notes.trim();
+    if (isbn !== undefined) updateData.isbn = isbn.trim();
+    if (imgURL !== undefined) updateData.imgURL = imgURL.trim();
 
-    const relationalData: {
-      status?: { connect: { id: number } };
-      genero?: { connect: { id: number } };
-    } = {
-      ...(statusExistente && {
-        status: { connect: { id: statusExistente.id } },
-      }),
-      ...(generoExistente && {
-        genero: { connect: { id: generoExistente.id } },
-      }),
-    };
-
-    if (
-      Object.keys(updateData).length === 0 &&
-      Object.keys(relationalData).length === 0
-    ) {
-      return NextResponse.json(
-        { error: "Nenhum campo para atualizar." },
-        { status: 400 }
-      );
+    if (Object.keys(updateData).length === 0 && Object.keys(relationalData).length === 0) {
+      return NextResponse.json({ error: "Nenhum campo para atualizar." }, { status: 400 });
     }
 
     const livroAtualizado = await prisma.book.update({
       where: { id },
       data: { ...updateData, ...relationalData },
-      include: { genero: true, status: true },
+      include: { genre: true, status: true },
     });
 
     return NextResponse.json({
       message: "Livro atualizado com sucesso!",
       livro: {
         id: livroAtualizado.id,
-        titulo: livroAtualizado.titulo,
-        autor: livroAtualizado.autor,
-        anoPublicacao: livroAtualizado.anoPublicacao,
-        paginas: livroAtualizado.paginas,
-        avaliacao: livroAtualizado.avaliacao,
+        title: livroAtualizado.title,
+        author: livroAtualizado.author,
+        genre: livroAtualizado.genre?.categoryName ?? null,
+        publicationYear: livroAtualizado.publicationYear,
+        pages: livroAtualizado.pages,
         status: livroAtualizado.status?.statusName ?? null,
-        genero: livroAtualizado.genero?.categoryName ?? null,
+        rating: livroAtualizado.rating,
+        currentPage: livroAtualizado.currentPage,
+        notes: livroAtualizado.notes,
+        isbn: livroAtualizado.isbn,
         imgURL: livroAtualizado.imgURL,
       },
     });

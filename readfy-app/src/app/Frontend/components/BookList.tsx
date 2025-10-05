@@ -17,9 +17,9 @@ export default function BookList({ books, onEditBook, onDeleteBook }: BookListPr
 
   const filteredBooks = books.filter(book => {
     const matchesFilter = filter === "all" || book.status === filter;
-    const matchesSearch = book.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         book.autor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         book.genero.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         book.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         book.genre.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 

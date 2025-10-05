@@ -4,11 +4,19 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Book } from "@/app/types/book";
 import { toast } from "react-toastify";
-import { Search, LibraryBig, ArrowRight, SquarePen, Trash } from "lucide-react";
+import {
+  Search,
+  LibraryBig,
+  ArrowRight,
+  SquarePen,
+  Trash,
+  ArrowLeft,
+} from "lucide-react";
 import SkeletonCard from "@/app/frontend/components/SkeletonCard";
 import ConfirmDeleteModal from "@/app/frontend/components/ConfirmDeleteModal";
 import StarRating from "@/app/frontend/components/StarRating";
 import { getStatusColor } from "@/app/types/statusColor";
+import Link from "next/link";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -51,9 +59,9 @@ export default function Dashboard() {
     setFilteredBooks(
       books.filter(
         (b) =>
-          b.titulo.toLowerCase().includes(lower) ||
-          b.autor.toLowerCase().includes(lower) ||
-          b.genero.toLowerCase().includes(lower)
+          b.title.toLowerCase().includes(lower) ||
+          b.author.toLowerCase().includes(lower) ||
+          b.genre.toLowerCase().includes(lower)
       )
     );
   }, [searchTerm, books]);
@@ -62,7 +70,9 @@ export default function Dashboard() {
   const handleDelete = async (bookId: string) => {
     try {
       setDeletingBookId(bookId);
-      const res = await fetch(`/api/book/delete/${bookId}`, { method: "DELETE" });
+      const res = await fetch(`/api/book/delete/${bookId}`, {
+        method: "DELETE",
+      });
       if (!res.ok) throw new Error("Erro ao excluir livro");
       const json = await res.json();
       toast.success(json.message ?? "Livro excluído com sucesso!");
@@ -78,14 +88,19 @@ export default function Dashboard() {
       setDeletingBookId(null);
     }
   };
-  
 
-  // === Render ===
   return (
     <div className="flex flex-col min-h-[calc(100vh-64px)] bg-gray-50">
       <div className="h-16 shrink-0" />
 
       <main className="flex-1 overflow-y-auto p-6">
+                  <Link
+            href="/frontend/dashboard"
+            className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
+          >
+            <ArrowLeft className="inline-block w-5 h-5 mr-2" /> Voltar para
+            Dashboard
+          </Link>
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8 flex justify-between items-center">
@@ -93,12 +108,12 @@ export default function Dashboard() {
               <LibraryBig className="w-8 h-8 mr-2 text-blue-600" />
               Livros Cadastrados
             </h1>
-            <button
+            {/* <button
               onClick={() => router.push("/frontend/dashboard")}
               className="text-sm text-blue-600 hover:underline"
             >
               Voltar
-            </button>
+            </button> */}
           </div>
 
           {/* === Se não há livros cadastrados === */}
@@ -121,7 +136,7 @@ export default function Dashboard() {
             </div>
           ) : (
             <>
-              {/* === Barra de busca: só aparece se houver livros === */}
+              {/* === Barra de busca === */}
               {books.length > 0 && (
                 <div className="mb-6">
                   <div className="relative">
@@ -155,18 +170,23 @@ export default function Dashboard() {
               {/* === Grid de livros === */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {loadingBooks ? (
-                  Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <SkeletonCard key={i} />
+                  ))
                 ) : filteredBooks.length > 0 ? (
                   filteredBooks.map((book) => (
                     <div
                       key={book.id}
-                      className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 p-6 flex flex-col"
+                      className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 p-6 flex flex-col cursor-pointer group"
+                      onClick={() =>
+                        router.push(`/frontend/book/update/${book.id}`)
+                      }
                     >
                       {/* Capa */}
-                      <div className="w-full aspect-[2/3] mb-4 overflow-hidden rounded-md bg-gray-100">
+                      <div className="w-full aspect-[4/5] mb-3 overflow-hidden rounded-md bg-gray-100">
                         <img
                           src={book.imgURL || "/images/fallback-book.png"}
-                          alt={`Capa do livro ${book.titulo}`}
+                          alt={`Capa do livro ${book.title}`}
                           className="w-full h-full object-cover"
                           onError={(e) =>
                             ((e.target as HTMLImageElement).src =
@@ -179,10 +199,10 @@ export default function Dashboard() {
                       <div className="flex justify-between items-start mb-4 flex-1">
                         <div>
                           <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
-                            {book.titulo}
+                            {book.title}
                           </h3>
                           <p className="text-sm text-gray-600 mt-1">
-                            por {book.autor}
+                            por {book.author}
                           </p>
                         </div>
                         <span
@@ -198,30 +218,51 @@ export default function Dashboard() {
                       <div className="space-y-2 text-sm text-gray-600">
                         <div className="flex justify-between">
                           <span>Gênero:</span>
-                          <span className="font-medium">{book.genero}</span>
+                          <span className="font-medium">{book.genre}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Ano:</span>
-                          <span className="font-medium">{book.anoPublicacao}</span>
+                          <span className="font-medium">
+                            {book.publicationYear}
+                          </span>
                         </div>
                         <div className="flex justify-between">
                           <span>Páginas:</span>
-                          <span className="font-medium">{book.paginas}</span>
+                          <span className="font-medium">{book.pages}</span>
                         </div>
 
                         <div className="flex justify-between items-center mt-2">
                           <span>Avaliação:</span>
                           <StarRating
                             bookId={Number(book.id)}
-                            initialRating={book.avaliacao ?? 0}
+                            initialRating={book.rating ?? 0}
+                            onUpdate={(newRating) => {
+                              setBooks((prev) =>
+                                prev.map((b) =>
+                                  b.id === book.id
+                                    ? { ...b, rating: newRating }
+                                    : b
+                                )
+                              );
+                              setFilteredBooks((prev) =>
+                                prev.map((b) =>
+                                  b.id === book.id
+                                    ? { ...b, rating: newRating }
+                                    : b
+                                )
+                              );
+                            }}
                           />
                         </div>
                       </div>
 
-                      {/* Ações */}
-                      <div className="flex justify-end space-x-2 mt-4 pt-4 border-t border-gray-100">
+                      {/* Botões internos */}
+                      <div className="flex justify-end space-x-2 mt-4 pt-4 border-t border-gray-100 z-10 relative">
                         <button
-                          onClick={() => router.push(`/frontend/book/update/${book.id}`)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/frontend/book/update/${book.id}`);
+                          }}
                           className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                           title="Editar livro"
                         >
@@ -229,7 +270,10 @@ export default function Dashboard() {
                         </button>
 
                         <button
-                          onClick={() => setIsModalOpen(true)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIsModalOpen(true);
+                          }}
                           className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                           title="Excluir livro"
                         >
@@ -239,8 +283,21 @@ export default function Dashboard() {
                           isOpen={isModalOpen}
                           onClose={() => setIsModalOpen(false)}
                           onConfirm={() => handleDelete(book.id)}
-                          bookTitle={book.titulo}
+                          bookTitle={book.title}
                         />
+                      </div>
+
+                      {/* Botão Ver Mais */}
+                      <div className="mt-4">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/frontend/book/update/${book.id}`);
+                          }}
+                          className="w-full flex items-center justify-center gap-2 text-blue-600 font-medium hover:underline transition-colors"
+                        >
+                          Ver Mais <ArrowRight className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
                   ))

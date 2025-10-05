@@ -3,12 +3,17 @@ import prisma from "@/lib/prisma";
 import { StatusEnum } from "@prisma/client";
 
 interface BookBody {
-  titulo: string;
-  autor: string;
-  genero: string;
-  anoPublicacao: number;
-  paginas: number;
+  title: string;
+  author: string;
+  genre: string;
+  publicationYear: number;
+  pages: number;
   imgURL?: string;
+  rating?: number;
+  status?: StatusEnum;
+  currentPage?: number;
+  notes?: string;
+  isbn?: string;
 }
 
 function validateStringField(value: unknown, fieldName: string) {
@@ -19,64 +24,84 @@ function validateStringField(value: unknown, fieldName: string) {
 }
 
 function validateNumberField(value: unknown, fieldName: string) {
-  if (typeof value !== "number" || value <= 0) {
+  if (typeof value !== "number" || isNaN(value) || value <= 0) {
     return `${fieldName} deve ser um número maior que zero.`;
   }
   return null;
 }
 
+
 export async function POST(request: NextRequest) {
   try {
-    const body = (await request.json()) as BookBody;
-    const { titulo, autor, genero, anoPublicacao, paginas, imgURL } = body;
+    let body: BookBody;
+    try {
+      body = (await request.json()) as BookBody;
+    } catch {
+      return NextResponse.json(
+        {
+          error: "Corpo da requisição inválido.",
+          details: "Não foi possível interpretar o JSON enviado.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const { title, author, genre, publicationYear, pages, imgURL } = body;
 
     const errors = [
-      validateStringField(titulo, "Título do livro"),
-      validateStringField(autor, "Autor do livro"),
-      validateStringField(genero, "Gênero do livro"),
+      validateStringField(title, "Título do livro"),
+      validateStringField(author, "Autor do livro"),
+      validateStringField(genre, "Gênero do livro"),
       imgURL && typeof imgURL !== "string" ? "URL da imagem inválida." : null,
-      validateNumberField(anoPublicacao, "Ano de publicação"),
-      validateNumberField(paginas, "Número de páginas"),
+      validateNumberField(publicationYear, "Ano de publicação"),
+      validateNumberField(pages, "Número de páginas"),
     ].filter(Boolean);
 
     if (errors.length > 0) {
       return NextResponse.json({ error: errors.join(" ") }, { status: 400 });
     }
 
-    // Normaliza e cria gênero se não existir
-    const generoNormalized = genero.toLowerCase().trim();
-    let generoExistente = await prisma.genre.findUnique({
-      where: { categoryName: generoNormalized },
+    const genreNormalized = genre.toLowerCase().trim();
+    let genreExistente = await prisma.genre.findUnique({
+      where: { categoryName: genreNormalized },
     });
-    if (!generoExistente) {
-      generoExistente = await prisma.genre.create({
-        data: { categoryName: generoNormalized },
+    if (!genreExistente) {
+      genreExistente = await prisma.genre.create({
+        data: { categoryName: genreNormalized },
       });
     }
 
-    // Status padrão "fechado"
+    const validStatuses = Object.values(StatusEnum);
+    const statusValue = validStatuses.includes(body.status as StatusEnum)
+      ? (body.status as StatusEnum)
+      : StatusEnum.Fechado;
+
     let statusExistente = await prisma.status.findUnique({
-      where: { statusName: StatusEnum.Fechado},
+      where: { statusName: statusValue },
     });
     if (!statusExistente) {
       statusExistente = await prisma.status.create({
-        data: { statusName:  StatusEnum.Fechado },
+        data: { statusName: statusValue },
       });
     }
 
     const livro = await prisma.book.create({
       data: {
-        titulo,
-        autor,
-        anoPublicacao,
-        paginas,
+        title: title.trim(),
+        author: author.trim(),
+        publicationYear,
+        pages,
+        genre: { connect: { id: genreExistente.id } },
         status: { connect: { id: statusExistente.id } },
-        genero: { connect: { id: generoExistente.id } },
-        avaliacao: 0,
-        imgURL: imgURL || "",
+        rating: typeof body.rating === "number" ? body.rating : 0,
+        imgURL: imgURL?.trim() || "",
+        currentPage:
+          typeof body.currentPage === "number" ? body.currentPage : 0,
+        notes: body.notes?.trim() || "",
+        isbn: body.isbn?.trim() || "",
         createdAt: new Date(),
       },
-      include: { genero: true, status: true },
+      include: { genre: true, status: true },
     });
 
     return NextResponse.json(
@@ -84,14 +109,17 @@ export async function POST(request: NextRequest) {
         message: "Livro registrado com sucesso!",
         livro: {
           id: livro.id,
-          titulo: livro.titulo,
-          autor: livro.autor,
-          genero: livro.genero?.categoryName,
-          anoPublicacao: livro.anoPublicacao,
-          paginas: livro.paginas,
-          status: livro.status?.statusName,
-          avaliacao: livro.avaliacao,
+          title: livro.title,
+          author: livro.author,
+          genre: livro.genre?.categoryName,
+          publicationYear: livro.publicationYear,
+          pages: livro.pages,
+          status: livro.status.statusName,
+          rating: livro.rating,
           imgURL: livro.imgURL,
+          currentPage: livro.currentPage,
+          notes: livro.notes,
+          isbn: livro.isbn,
         },
       },
       { status: 201 }
@@ -101,12 +129,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error: "Não foi possível registrar o livro.",
-        details:
-          "O corpo da requisição não pôde ser interpretado. Verifique a formatação.",
+        details: "Ocorreu um erro interno no servidor.",
       },
-      { status: 400 }
+      { status: 500 }
     );
   } finally {
-    await prisma.$disconnect();
+    if (prisma) await prisma.$disconnect();
   }
 }

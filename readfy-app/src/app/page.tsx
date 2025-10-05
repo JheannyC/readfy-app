@@ -36,7 +36,7 @@ export default function Home() {
           </Link>
 
           <Link
-            href="/book/register"
+            href="/frontend/book/register"
             className="bg-sky-400 hover:bg-sky-500 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
           >
             <Plus size={20} className="inline-block mr-2" />
