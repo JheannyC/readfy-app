@@ -17,14 +17,24 @@ export function ThemeToggle() {
   
   useEffect(() => setMounted(true), []);
 
-  const icon =
-    theme === "dark" ? (
-      <Moon className="size-4" />
-    ) : theme === "light" ? (
-      <Sun className="size-4" />
-    ) : (
-      <BookOpen className="size-4" />
+  if (!mounted) {
+    // Renderiza um placeholder neutro enquanto hidrata
+    return (
+      <Button
+        variant="ghost"
+        size="icon"
+        aria-label="Alternar tema"
+        className="rounded-2xl theme-toggle transition-all duration-300"
+      >
+        <Sun className="size-4" />
+      </Button>
     );
+  }
+
+  const icon =
+    theme === "dark" ? <Moon className="size-4" /> :
+    theme === "light" ? <Sun className="size-4" /> :
+    <BookOpen className="size-4" />;
 
   return (
     <DropdownMenu>
@@ -35,30 +45,18 @@ export function ThemeToggle() {
           aria-label="Alternar tema"
           className="rounded-2xl theme-toggle transition-all duration-300 hover:scale-110"
         >
-          {mounted ? icon : <Sun className="size-4" />}
+          {icon}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuItem 
-          onClick={() => setTheme("light")} 
-          className="gap-2 cursor-pointer transition-colors"
-        >
-          <Sun className="size-4 text-yellow-500" /> 
-          <span>Tema Claro</span>
+        <DropdownMenuItem onClick={() => setTheme("light")} className="gap-2 cursor-pointer transition-colors">
+          <Sun className="size-4 text-yellow-500" /> <span>Tema Claro</span>
         </DropdownMenuItem>
-        <DropdownMenuItem 
-          onClick={() => setTheme("dark")} 
-          className="gap-2 cursor-pointer transition-colors"
-        >
-          <Moon className="size-4 text-blue-400" /> 
-          <span>Tema Escuro</span>
+        <DropdownMenuItem onClick={() => setTheme("dark")} className="gap-2 cursor-pointer transition-colors">
+          <Moon className="size-4 text-blue-400" /> <span>Tema Escuro</span>
         </DropdownMenuItem>
-        <DropdownMenuItem 
-          onClick={() => setTheme("book")} 
-          className="gap-2 cursor-pointer transition-colors"
-        >
-          <BookOpen className="size-4 text-amber-600" /> 
-          <span>Modo Livro</span>
+        <DropdownMenuItem onClick={() => setTheme("book")} className="gap-2 cursor-pointer transition-colors">
+          <BookOpen className="size-4 text-amber-600" /> <span>Modo Livro</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

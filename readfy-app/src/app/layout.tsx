@@ -24,8 +24,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR" className={fontFamily.variable} suppressHydrationWarning>
-      <body className="font-sans min-h-screen flex flex-col transition-colors duration-300">
+    <html lang="pt-BR">
+      <body
+        className={`${fontFamily.variable} font-sans min-h-screen flex flex-col transition-colors duration-300`}
+      >
         <ThemeProvider>
           <Header />
           <main className="flex-1 pt-16 transition-colors duration-300">
