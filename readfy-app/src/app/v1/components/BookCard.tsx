@@ -3,7 +3,7 @@
 import { Book } from "@/app/types/book";
 import { useRouter } from "next/navigation";
 import { SquarePen, Trash } from "lucide-react";
-import StarRating from "@/app/frontend/components/StarRating";
+import StarRating from "@/app/v1/components/StarRating";
 import { getStatusColor } from "@/app/types/statusColor";
 
 interface BookCardProps {
@@ -86,7 +86,7 @@ export default function BookCard({ book, onDelete, deletingBookId }: BookCardPro
           <button
             onClick={(e) => {
               e.stopPropagation();
-              router.push(`/frontend/book/update/${book.id}`);
+              router.push(`/v1/book/update/${book.id}`);
             }}
             className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
             title="Editar livro"

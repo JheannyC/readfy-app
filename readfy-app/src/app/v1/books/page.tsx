@@ -12,9 +12,9 @@ import {
   Trash,
   ArrowLeft,
 } from "lucide-react";
-import SkeletonCard from "@/app/frontend/components/SkeletonCard";
-import ConfirmDeleteModal from "@/app/frontend/components/ConfirmDeleteModal";
-import StarRating from "@/app/frontend/components/StarRating";
+import SkeletonCard from "@/app/v1/components/SkeletonCard";
+import ConfirmDeleteModal from "@/app/v1/components/ConfirmDeleteModal";
+import StarRating from "@/app/v1/components/StarRating";
 import { getStatusColor } from "@/app/types/statusColor";
 import Link from "next/link";
 
@@ -95,7 +95,7 @@ export default function Dashboard() {
 
       <main className="flex-1 overflow-y-auto p-6">
         <Link
-          href="/frontend/dashboard"
+          href="/v1/dashboard"
           className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
         >
           <ArrowLeft className="inline-block w-5 h-5 mr-2" /> Voltar para
@@ -122,7 +122,7 @@ export default function Dashboard() {
                 leitura.
               </p>
               <button
-                onClick={() => router.push("/frontend/book/register")}
+                onClick={() => router.push("/v1/book/register")}
                 className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium text-lg"
               >
                 Cadastrar Primeiro Livro
@@ -174,7 +174,7 @@ export default function Dashboard() {
                       key={book.id}
                       className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 p-6 flex flex-col cursor-pointer group"
                       onClick={() =>
-                        router.push(`/frontend/book/${book.id}`)
+                        router.push(`/v1/book/${book.id}`)
                       }
                     >
                       {/* Capa */}
@@ -256,7 +256,7 @@ export default function Dashboard() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            router.push(`/frontend/book/update/${book.id}`);
+                            router.push(`/v1/book/update/${book.id}`);
                           }}
                           className="p-3 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                           title="Editar livro"
@@ -287,7 +287,7 @@ export default function Dashboard() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            router.push(`/frontend/book/${book.id}`);
+                            router.push(`/v1/book/${book.id}`);
                           }}
                           className="w-full flex items-center justify-center gap-2 text-blue-600 font-medium hover:underline transition-colors"
                         >

@@ -156,7 +156,7 @@ export default function RegisterBook() {
       });
       if (response.ok) {
         toast.success("📚 Livro cadastrado com sucesso!");
-        router.push("/frontend/books");
+        router.push("/v1/books");
       } else {
         const errorData = await response.json();
         toast.error(errorData.error || "Erro ao cadastrar livro");
@@ -172,7 +172,7 @@ export default function RegisterBook() {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <Link href="/frontend/dashboard" className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4">
+          <Link href="/v1/dashboard" className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4">
             <ArrowLeft className="inline-block w-5 h-5 mr-2" /> Voltar para Dashboard
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">Cadastrar Novo Livro</h1>
@@ -235,7 +235,7 @@ export default function RegisterBook() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
-            <Link href="/frontend/dashboard" className="flex-1 bg-gray-500 text-white text-center py-3 rounded-lg hover:bg-gray-600 transition-colors font-medium">Cancelar</Link>
+            <Link href="/v1/dashboard" className="flex-1 bg-gray-500 text-white text-center py-3 rounded-lg hover:bg-gray-600 transition-colors font-medium">Cancelar</Link>
             <button type="submit" disabled={loading} className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed">
               {loading ? "Cadastrando..." : "Cadastrar Livro"}
             </button>

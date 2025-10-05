@@ -49,7 +49,7 @@ export default function EditBookPage() {
         const livro = data.livro;
         if (!livro) {
           toast.error("Livro não encontrado!");
-          router.push("/frontend/dashboard");
+          router.push("/v1/dashboard");
           return;
         }
 
@@ -71,7 +71,7 @@ export default function EditBookPage() {
       } catch (err) {
         console.error(err);
         toast.error("Erro ao carregar livro");
-        router.push("/frontend/dashboard");
+        router.push("/v1/dashboard");
       } finally {
         setLoading(false);
       }
@@ -227,7 +227,7 @@ export default function EditBookPage() {
       }
 
       toast.success("Livro atualizado com sucesso!");
-      router.push("/frontend/books");
+      router.push("/v1/books");
     } catch (err) {
       console.error(err);
       toast.error("Erro ao atualizar livro: " + err);
@@ -244,7 +244,7 @@ export default function EditBookPage() {
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <Link
-            href="/frontend/dashboard"
+            href="/v1/dashboard"
             className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
           >
             <ArrowLeft className="inline-block w-5 h-5 mr-2" /> Voltar para Dashboard
@@ -417,7 +417,7 @@ export default function EditBookPage() {
           {/* Botões */}
           <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
             <Link
-              href="/frontend/dashboard"
+              href="/v1/dashboard"
               className="flex-1 bg-gray-500 text-white text-center py-3 rounded-lg hover:bg-gray-600 transition-colors font-medium"
             >
               Cancelar
