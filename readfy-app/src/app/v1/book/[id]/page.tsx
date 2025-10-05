@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Book } from "@/app/types/book";
 import { toast } from "react-toastify";
 import { ArrowLeft, LibraryBig, SquarePen, Trash } from "lucide-react";
-import StarRating from "@/app/frontend/components/StarRating";
+import StarRating from "@/app/v1/components/StarRating";
 import { getStatusColor } from "@/app/types/statusColor";
    
 import Link from "next/link";
@@ -31,7 +31,7 @@ export default function BookDetailsPage() {
         const data = await res.json();
         if (!data.livro) {
           toast.error("Livro não encontrado");
-          router.push("/frontend/books");
+          router.push("/v1/books");
           return;
         }
         setBook({
@@ -65,7 +65,7 @@ export default function BookDetailsPage() {
       const res = await fetch(`/api/book/delete/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Erro ao excluir livro");
       toast.success("Livro excluído com sucesso!");
-      router.push("/frontend/books");
+      router.push("/v1/books");
     } catch (err) {
       console.error(err);
       toast.error("Erro ao excluir livro");
@@ -109,7 +109,7 @@ export default function BookDetailsPage() {
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <main className="flex-1 overflow-y-auto p-6">
         <Link
-          href="/frontend/books"
+          href="/v1/books"
           className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
         >
           <ArrowLeft className="inline-block w-5 h-5 mr-2" /> Voltar
@@ -206,7 +206,7 @@ export default function BookDetailsPage() {
               <div className="flex justify-end space-x-2 mt-6 pt-4 border-t border-gray-100">
                 <button
                   onClick={() =>
-                    router.push(`/frontend/book/update/${book.id}`)
+                    router.push(`/v1/book/update/${book.id}`)
                   }
                   className="p-3 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                   title="Editar livro"

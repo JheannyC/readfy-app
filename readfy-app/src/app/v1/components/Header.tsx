@@ -22,13 +22,13 @@ export default function Header() {
               Início
             </Link>
             <Link
-              href="/frontend/dashboard"
+              href="/v1/dashboard"
               className="text-gray-600 hover:text-gray-900"
             >
               Dashboard
             </Link>
             <Link
-              href="/frontend/book/register"
+              href="/v1/book/register"
               className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center gap-2"
             >
               <Plus size={18} />
@@ -49,13 +49,13 @@ export default function Header() {
               Início
             </Link>
             <Link
-              href="/frontend/dashboard"
+              href="/v1/dashboard"
               className="text-gray-600 hover:text-gray-900"
             >
               Dashboard
             </Link>
             <Link
-              href="/book/register"
+              href="/v1/book/register"
               className="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center gap-2"
             >
               <Plus size={18} />
