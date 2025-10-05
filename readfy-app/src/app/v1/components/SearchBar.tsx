@@ -13,8 +13,8 @@ export default function SearchBar() {
     
     if (searchTerm.trim()) {
       // Se não estiver no dashboard, redireciona para o dashboard com o termo de busca
-      if (pathname !== "/dashboard") {
-        router.push(`/dashboard?search=${encodeURIComponent(searchTerm.trim())}`);
+      if (pathname !== "/v1/dashboard") {
+        router.push(`/v1/dashboard?search=${encodeURIComponent(searchTerm.trim())}`);
       } else {
         // Se já estiver no dashboard, apenas atualiza a URL
         const url = new URL(window.location.href);
@@ -27,7 +27,7 @@ export default function SearchBar() {
   const clearSearch = () => {
     setSearchTerm("");
     // Remove o parâmetro de busca da URL
-    if (pathname === "/dashboard") {
+    if (pathname === "/v1/dashboard") {
       const url = new URL(window.location.href);
       url.searchParams.delete('search');
       router.push(url.toString());
@@ -36,7 +36,7 @@ export default function SearchBar() {
 
   // Efeito para sincronizar com a URL quando a página carrega
   useEffect(() => {
-    if (pathname === "/dashboard") {
+    if (pathname === "/v1/dashboard") {
       const urlParams = new URLSearchParams(window.location.search);
       const searchParam = urlParams.get('search');
       if (searchParam) {
