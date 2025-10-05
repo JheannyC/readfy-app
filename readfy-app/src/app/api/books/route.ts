@@ -4,8 +4,8 @@ import prisma from "@/lib/prisma";
 export async function GET(req: NextRequest) {
   try {
     const livros = await prisma.book.findMany({
-      include: { genero: true, status: true },
-      orderBy: { titulo: "asc" },
+      include: { genre: true, status: true },
+      orderBy: { title: "asc" },
     });
 
     return NextResponse.json({
@@ -13,15 +13,18 @@ export async function GET(req: NextRequest) {
         ? "Todos os livros foram listados com sucesso!"
         : "Nenhum livro cadastrado.",
       books: livros.map((l) => ({
-        id: l.id,
-        titulo: l.titulo,
-        autor: l.autor,
-        genero: l.genero?.categoryName ?? null,
-        anoPublicacao: l.anoPublicacao,
-        paginas: l.paginas,
-        status: l.status?.statusName?.toUpperCase() ?? null,
-        avaliacao: l.avaliacao,
-        imgURL: l.imgURL,
+        id: l.id.toString(),
+        title: l.title ?? "",
+        author: l.author ?? "",
+        genre: l.genre?.categoryName ?? "",
+        publicationYear: l.publicationYear ?? 0,
+        pages: l.pages ?? 0,
+        status: l.status?.statusName,
+        rating: l.rating ?? 0,
+        currentPage: l.currentPage ?? 0,
+        notes: l.notes ?? "",
+        isbn: l.isbn ?? "",
+        imgURL: l.imgURL ?? "",
       })),
     });
   } catch (error) {

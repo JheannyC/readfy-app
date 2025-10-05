@@ -77,9 +77,9 @@ export default function Dashboard() {
     setFilteredBooks(
       books.filter(
         (b) =>
-          b.titulo.toLowerCase().includes(lower) ||
-          b.autor.toLowerCase().includes(lower) ||
-          b.genero.toLowerCase().includes(lower)
+          b.title.toLowerCase().includes(lower) ||
+          b.author.toLowerCase().includes(lower) ||
+          b.genre.toLowerCase().includes(lower)
       )
     );
   }, [searchTerm, books]);
@@ -153,13 +153,6 @@ export default function Dashboard() {
               </>
             )}
           </div>
-
-          {dashboardError && (
-            <div className="mb-4 text-sm text-red-600">
-              Erro ao carregar estatísticas:{" "}
-              {loadingDashboard ? "…" : dashboardData?.details}
-            </div>
-          )}
           <button
             onClick={() => router.push("/frontend/books")}
             className="flex items-center gap-2 bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all cursor-pointer"

@@ -34,10 +34,10 @@ export async function GET() {
     });
 
     const paginasLidas = await prisma.book.aggregate({
-      _sum: { paginas: true },
+      _sum: { pages: true },
       where: { status: { statusName: StatusEnum.Finalizado } },
     });
-    const totalPaginasLidas = paginasLidas._sum.paginas || 0;
+    const totalPaginasLidas = paginasLidas._sum.pages || 0;
 
     return NextResponse.json({
       totalLivrosRegistrados,

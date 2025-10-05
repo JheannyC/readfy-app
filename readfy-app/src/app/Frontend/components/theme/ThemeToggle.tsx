@@ -6,10 +6,10 @@ import {
   DropdownMenuTrigger,
   DropdownMenuItem,
   DropdownMenuContent,
-} from "@/app/frontend/components/ui/DropdownMenu";
+} from "../ui/DropdownMenu";
 
 import { useEffect, useState } from "react";
-import { Button } from "@/app/frontend/components/ui/button";
+import { Button } from "../ui/button";
 
 
 export function ThemeToggle() {

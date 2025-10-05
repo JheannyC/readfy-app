@@ -14,18 +14,21 @@ generator client {
 }
 
 model Book {
-  id            Int     @id @default(autoincrement())
-  titulo        String
-  autor         String
-  anoPublicacao Int
-  paginas       Int
-  statusId      Int
-  status        Status  @relation(fields: [statusId], references: [id])
-  avaliacao     Int?
-  imgURL        String?
+  id              Int     @id @default(autoincrement())
+  title           String
+  author          String
+  publicationYear Int
+  pages           Int
+  statusId        Int
+  status          Status  @relation(fields: [statusId], references: [id])
+  rating          Int?
+  imgURL          String?
+  currentPage     Int?
+  notes           String?
+  isbn            String?
 
-  generoId Int
-  genero   Genre @relation(fields: [generoId], references: [id])
+  genreId Int
+  genre   Genre @relation(fields: [genreId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -44,10 +47,11 @@ enum StatusEnum {
   Fechado
   Finalizado
 }
+
 model Status {
-  id         Int      @id @default(autoincrement())
+  id         Int        @id @default(autoincrement())
   statusName StatusEnum @unique
   books      Book[]
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 }

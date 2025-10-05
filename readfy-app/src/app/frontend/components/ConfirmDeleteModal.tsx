@@ -39,7 +39,10 @@ export default function ConfirmDeleteModal({
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50 px-4">
+    <div
+      className="fixed inset-0 flex items-center justify-center z-50 px-4 transition-opacity"
+      style={{ backgroundColor: "rgba(0,0,0,0.25)" }} // 🔹 leve transparência (25%)
+    >
       <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-fadeIn">
         <h2 className="text-lg font-semibold text-gray-800">
           Confirmar exclusão

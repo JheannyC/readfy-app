@@ -20,12 +20,12 @@ export async function GET(
 
     const livro:
       | (Book & {
-          genero: { categoryName: string } | null;
+          genre: { categoryName: string } | null;
           status: { statusName: string } | null;
         })
       | null = await prisma.book.findUnique({
       where: { id: livroId },
-      include: { genero: true, status: true },
+      include: { genre: true, status: true },
     });
 
     if (!livro) {
@@ -43,14 +43,18 @@ export async function GET(
       {
         message: "Livro encontrado com sucesso!",
         livro: {
-          id: livro.id,
-          titulo: livro.titulo,
-          autor: livro.autor,
-          genero: livro.genero?.categoryName ?? null,
-          anoPublicacao: livro.anoPublicacao,
-          paginas: livro.paginas,
-          status: livro.status?.statusName ?? null,
-          avaliacao: livro.avaliacao,
+          id: livro.id.toString(),
+          title: livro.title ?? "",
+          author: livro.author ?? "",
+          genre: livro.genre?.categoryName ?? "",
+          publicationYear: livro.publicationYear ?? 0,
+          pages: livro.pages ?? 0,
+          status: livro.status?.statusName ?? "Fechado",
+          rating: livro.rating ?? 0,
+          currentPage: livro.currentPage ?? 0,
+          notes: livro.notes ?? "",
+          isbn: livro.isbn ?? "",
+          imgURL: livro.imgURL ?? "",
         },
       },
       { status: 200 }
