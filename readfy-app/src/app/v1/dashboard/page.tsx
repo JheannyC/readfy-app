@@ -160,6 +160,13 @@ export default function Dashboard() {
             Livros Cadastrados
             <ArrowRight size={18} className="text-white" />
           </button>
+                    <button
+            onClick={() => router.push("/v1/book/register")}
+            className="flex items-center gap-2 bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all cursor-pointer"
+          >
+            Cadastrar Livro
+            <ArrowRight size={18} className="text-white" />
+          </button>
         </div>
       </main>
     </div>

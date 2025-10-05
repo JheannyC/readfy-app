@@ -53,7 +53,9 @@ export default function FormField({
         }`}
       />
       {errors[fieldName] && (
-        <p className="text-red-500 text-sm mt-1">{errors[fieldName]}</p>
+        <p className="text-red-500 mt-1" style={{ fontSize: "12px" }}>
+          {errors[fieldName]}
+        </p>
       )}
     </div>
   );

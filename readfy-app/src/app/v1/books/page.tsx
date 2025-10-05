@@ -11,6 +11,7 @@ import {
   SquarePen,
   Trash,
   ArrowLeft,
+  Loader2,
 } from "lucide-react";
 import SkeletonCard from "@/app/v1/components/SkeletonCard";
 import ConfirmDeleteModal from "@/app/v1/components/ConfirmDeleteModal";
@@ -26,6 +27,13 @@ export default function Dashboard() {
   const [loadingBooks, setLoadingBooks] = useState(true);
   const [deletingBookId, setDeletingBookId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [bookToDelete, setBookToDelete] = useState<Book | null>(null);
+
+  const statusLabels: Record<string, string> = {
+    Aberto: "Lendo",
+    Fechado: "Não lido",
+    Finalizado: "Finalizado",
+  };
 
   // === Carregar livros ===
   useEffect(() => {
@@ -92,16 +100,15 @@ export default function Dashboard() {
   return (
     <div className="flex flex-col min-h-[calc(100vh-64px)] bg-gray-50">
       <div className="h-16 shrink-0" />
-
       <main className="flex-1 overflow-y-auto p-6">
-        <Link
-          href="/v1/dashboard"
-          className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
-        >
-          <ArrowLeft className="inline-block w-5 h-5 mr-2" /> Voltar para
-          Dashboard
-        </Link>
         <div className="max-w-7xl mx-auto">
+          <Link
+            href="/v1/dashboard"
+            className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
+          >
+            <ArrowLeft className="inline-block w-5 h-5 mr-2" /> Voltar
+          </Link>
+
           {/* Header */}
           <div className="mb-8 flex justify-between items-center">
             <h1 className="text-3xl font-bold text-gray-900 flex items-center">
@@ -173,9 +180,7 @@ export default function Dashboard() {
                     <div
                       key={book.id}
                       className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 p-6 flex flex-col cursor-pointer group"
-                      onClick={() =>
-                        router.push(`/v1/book/${book.id}`)
-                      }
+                      onClick={() => router.push(`/v1/book/${book.id}`)}
                     >
                       {/* Capa */}
                       <div className="w-full aspect-[4/5] mb-3 overflow-hidden rounded-md bg-gray-100">
@@ -205,7 +210,7 @@ export default function Dashboard() {
                             book.status
                           )}`}
                         >
-                          {book.status}
+                          {statusLabels[book.status] || book.status}
                         </span>
                       </div>
 
@@ -267,6 +272,7 @@ export default function Dashboard() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
+                            setBookToDelete(book);
                             setIsModalOpen(true);
                           }}
                           className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -274,12 +280,6 @@ export default function Dashboard() {
                         >
                           <Trash className="w-5 h-5" />
                         </button>
-                        <ConfirmDeleteModal
-                          isOpen={isModalOpen}
-                          onClose={() => setIsModalOpen(false)}
-                          onConfirm={() => handleDelete(book.id)}
-                          bookTitle={book.title}
-                        />
                       </div>
 
                       {/* Botão Ver Mais */}
@@ -291,7 +291,7 @@ export default function Dashboard() {
                           }}
                           className="w-full flex items-center justify-center gap-2 text-blue-600 font-medium hover:underline transition-colors"
                         >
-                          Ver Mais <ArrowRight className="w-4 h-4" />
+                          Ver mais <ArrowRight className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
@@ -306,6 +306,23 @@ export default function Dashboard() {
           )}
         </div>
       </main>
+
+      {/* === Modal fora do map === */}
+      {bookToDelete && (
+        <ConfirmDeleteModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setBookToDelete(null);
+          }}
+          onConfirm={() => {
+            if (bookToDelete) handleDelete(bookToDelete.id);
+          }}
+          bookTitle={bookToDelete.title}
+          loading={deletingBookId === bookToDelete.id}
+          spinner={<Loader2 className="w-5 h-5 animate-spin" />}
+        />
+      )}
     </div>
   );
 }

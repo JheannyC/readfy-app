@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trash, Trash2, UploadCloud } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import { StatusEnum } from "@prisma/client";
 import "react-toastify/dist/ReactToastify.css";
@@ -11,6 +11,7 @@ import { BookFormData, FieldError } from "@/app/types/error";
 
 import SelectField from "../../../components/SelectField";
 import FormField from "../../../components/FormField";
+import BookFormSkeleton from "@/app/v1/components/SkeletonBookForm";
 
 export default function EditBookPage() {
   const router = useRouter();
@@ -59,13 +60,13 @@ export default function EditBookPage() {
           genero: livro.genre || "",
           anoPublicacao: livro.publicationYear?.toString() || "",
           paginas: livro.pages?.toString() || "",
-          status: livro.status as StatusEnum || StatusEnum.Fechado,
+          status: (livro.status as StatusEnum) || StatusEnum.Fechado,
           avaliacao: livro.rating?.toString() || "0",
           isbn: livro.isbn || "",
           currentPage: livro.currentPage?.toString() || "",
           notes: livro.notes || "",
-          imagemUrl: livro.imgURL || "",
-          imagemFile: null,
+          imagemUrl: "", // não preenchemos a URL
+          imagemFile: livro.imgURL ? ({} as File) : null, // placeholder para indicar que existe imagem
         });
         setPreviewUrl(livro.imgURL || "");
       } catch (err) {
@@ -102,7 +103,7 @@ export default function EditBookPage() {
 
   const handleImageUrlChange = (url: string) => {
     setFormData((prev) => ({ ...prev, imagemUrl: url, imagemFile: null }));
-    setPreviewUrl(url);
+    setPreviewUrl(""); // não mostra preview de URL
   };
 
   const removeImage = () => {
@@ -112,7 +113,10 @@ export default function EditBookPage() {
   };
 
   // Validações
-  const validateFieldSync = (field: keyof BookFormData, value: string): string | null => {
+  const validateFieldSync = (
+    field: keyof BookFormData,
+    value: string
+  ): string | null => {
     const currentYear = new Date().getFullYear();
     switch (field) {
       case "titulo":
@@ -140,7 +144,8 @@ export default function EditBookPage() {
         break;
       case "paginas":
         const pages = Number(value);
-        if (!value || isNaN(pages) || pages < 0) return "Número de páginas deve ser maior ou igual a 0.";
+        if (!value || isNaN(pages) || pages < 0)
+          return "Número de páginas deve ser maior ou.";
         break;
       case "currentPage":
         const currentPage = Number(value);
@@ -160,17 +165,26 @@ export default function EditBookPage() {
     return null;
   };
 
-  const handleInputChange = <K extends keyof BookFormData>(field: K, value: string) => {
+  const handleInputChange = <K extends keyof BookFormData>(
+    field: K,
+    value: string
+  ) => {
     // Máscara de ISBN
     if (field === "isbn") {
       value = value.replace(/[^\d]/g, "");
-      if (value.length > 3 && value.length <= 13) value = value.slice(0, 3) + "-" + value.slice(3);
-      else if (value.length > 13) value = value.slice(0, 3) + "-" + value.slice(3, 13);
+      if (value.length > 3 && value.length <= 13)
+        value = value.slice(0, 3) + "-" + value.slice(3);
+      else if (value.length > 13)
+        value = value.slice(0, 3) + "-" + value.slice(3, 13);
     }
 
     // Limitar campos numéricos
     if (["anoPublicacao", "paginas", "currentPage"].includes(field)) {
-      const maxLengthMap: Record<string, number> = { anoPublicacao: 4, paginas: 6, currentPage: 6 };
+      const maxLengthMap: Record<string, number> = {
+        anoPublicacao: 4,
+        paginas: 6,
+        currentPage: 6,
+      };
       value = value.slice(0, maxLengthMap[field]);
     }
 
@@ -210,9 +224,13 @@ export default function EditBookPage() {
         status: formData.status,
         rating: Number(formData.avaliacao),
         isbn: formData.isbn.trim() || undefined,
-        currentPage: formData.currentPage ? Number(formData.currentPage) : undefined,
+        currentPage: formData.currentPage
+          ? Number(formData.currentPage)
+          : undefined,
         notes: formData.notes.trim() || undefined,
-        imgURL: formData.imagemUrl || previewUrl || undefined,
+        imgURL: formData.imagemFile
+          ? previewUrl
+          : formData.imagemUrl || undefined,
       };
 
       const res = await fetch(`/api/book/update/${bookId}`, {
@@ -227,7 +245,7 @@ export default function EditBookPage() {
       }
 
       toast.success("Livro atualizado com sucesso!");
-      router.push("/v1/books");
+      // Mantém na mesma página
     } catch (err) {
       console.error(err);
       toast.error("Erro ao atualizar livro: " + err);
@@ -236,7 +254,7 @@ export default function EditBookPage() {
     }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
+  if (loading) return <BookFormSkeleton />;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -244,52 +262,78 @@ export default function EditBookPage() {
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <Link
-            href="/v1/dashboard"
+            href="/v1/books"
             className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
           >
-            <ArrowLeft className="inline-block w-5 h-5 mr-2" /> Voltar para Dashboard
+            <ArrowLeft className="inline-block w-5 h-5 mr-2" /> Voltar
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">Editar Livro</h1>
           <p className="text-gray-600 mt-2">Atualize as informações do livro</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white shadow-lg rounded-lg p-6 space-y-6">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white shadow-lg rounded-lg p-6 space-y-6"
+        >
           {/* Capa */}
           <div className="border-b border-gray-200 pb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Capa do Livro</h2>
-            {previewUrl && (
-              <div className="mb-4">
-                <div className="relative inline-block">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Capa do Livro
+            </h2>
+            <div className="flex flex-col md:flex-row gap-8 items-start">
+              <div className="w-32 h-48 flex-shrink-0 border rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
+                {formData.imagemFile ? (
                   <img
                     src={previewUrl}
                     alt="Preview"
-                    className="w-32 h-48 object-cover rounded-lg shadow-md border"
+                    className="w-full h-full object-cover"
                   />
+                ) : (
+                  <span className="text-gray-400 text-sm text-center px-2">
+                    Sem imagem
+                  </span>
+                )}
+              </div>
+
+              {/* Upload e campo de URL */}
+              <div className="flex-1 flex flex-col gap-4">
+                {/* Botão estilizado para upload */}
+                <label className="inline-block bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 cursor-pointer font-medium w-max text-center">
+                  <UploadCloud className="inline-flex mr-2" size={16} />
+                  Escolher Arquivo
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </label>
+
+                <input
+                  type="text"
+                  value={formData.imagemUrl}
+                  onChange={(e) => handleImageUrlChange(e.target.value)}
+                  placeholder="Cole a URL da imagem (sem preview)"
+                  disabled={!!formData.imagemFile} // trava quando há upload
+                  className={`w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 ${
+                    formData.imagemFile
+                      ? "bg-gray-100 cursor-not-allowed"
+                      : "focus:ring-blue-500"
+                  }`}
+                />
+
+                {formData.imagemFile && (
                   <button
                     type="button"
                     onClick={removeImage}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                    className="self-start bg-red-400 text-white px-4 py-2 rounded-lg hover:bg-red-500 transition-colors font-medium text-sm"
                   >
-                    ✕
+                    <Trash2 className="inline-flex mr-2" size={16} />
+                    Remover Imagem
                   </button>
-                </div>
+                )}
               </div>
-            )}
-            <div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-              />
-              <input
-                type="text"
-                value={formData.imagemUrl}
-                onChange={(e) => handleImageUrlChange(e.target.value)}
-                placeholder="URL da imagem"
-                className="w-full mt-2 border rounded-lg px-3 py-2"
-              />
             </div>
           </div>
 
@@ -401,17 +445,23 @@ export default function EditBookPage() {
             placeholder="Ex: 50"
           />
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Notas e Observações</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Notas e Observações
+            </label>
             <textarea
               value={formData.notes}
               onChange={(e) => handleInputChange("notes", e.target.value)}
               rows={4}
               className={`w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:border-transparent resize-none ${
-                errors.notes ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-blue-500"
+                errors.notes
+                  ? "border-red-500 focus:ring-red-500"
+                  : "border-gray-300 focus:ring-blue-500"
               }`}
               placeholder="Adicione notas sobre o livro..."
             />
-            {errors.notes && <p className="text-red-500 text-sm mt-1">{errors.notes}</p>}
+            {errors.notes && (
+              <p className="text-red-500 text-sm mt-1">{errors.notes}</p>
+            )}
           </div>
 
           {/* Botões */}
